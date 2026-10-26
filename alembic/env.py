@@ -12,6 +12,7 @@ from social_agent.db.base import Base
 from social_agent.db.models import (  # noqa: F401 — register metadata
     CanalRule,
     ContextDoc,
+    LlmConnection,
     SocialAccount,
     User,
     VoiceDoc,
