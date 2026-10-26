@@ -30,6 +30,7 @@ Alembic manages schema:
 - `users` — `id`, unique `email`, `password_hash`, timestamps
 - `voice_docs` — one row per user (`user_id` FK → `users`, unique), `body` text, timestamps
 - `context_docs` — many rows per user (`user_id` FK → `users`, indexed), `title`, `body`, timestamps
+- `canal_rules` — one row per user+channel (`user_id` FK → `users`, unique `(user_id, channel)`), `body`, timestamps
 
 ```bash
 export DATABASE_URL=postgresql+psycopg://social:social@127.0.0.1:5432/social_agent_test
