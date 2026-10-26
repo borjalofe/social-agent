@@ -82,6 +82,39 @@ rotated = authn.rotate(pair.refresh_token)
 # TokenPair.__repr__ redacts secrets — never log access_token / refresh_token.
 ```
 
+## Siren action authz (owner-only + 403)
+
+Before offering Siren `actions`, filter them for the authenticated subject. Before executing a mutation, call `enforce` — unauthorized subjects raise `ForbiddenError` with `status_code == 403`.
+
+M2 policy is owner-only (`OwnerOnlyPolicy`): a user may act only on resources they own. Admin / cross-user actions stay out of scope until later milestones.
+
+```python
+from uuid import uuid4
+from social_agent.auth import ForbiddenError, SirenAction, SirenActionAuthz
+
+authz = SirenActionAuthz()
+owner, stranger = uuid4(), uuid4()
+candidates = [
+    SirenAction(name="update-voice", method="PUT", href="/voice"),
+]
+assert authz.filter_actions(owner, resource_owner_id=owner, candidates=candidates)
+assert authz.filter_actions(stranger, resource_owner_id=owner, candidates=candidates) == []
+
+authz.enforce(owner, resource_owner_id=owner, action="update-voice")
+try:
+    authz.enforce(stranger, resource_owner_id=owner, action="update-voice")
+except ForbiddenError as exc:
+    assert exc.status_code == 403
+
+# Or strip actions from a Siren entity dict:
+entity = authz.authorize_entity(
+    {"class": ["voice"], "actions": [{"name": "update-voice", "method": "PUT", "href": "/voice"}]},
+    stranger,
+    resource_owner_id=owner,
+)
+assert entity["actions"] == []
+```
+
 ## Sealing LLM secrets (Fernet)
 
 `llm_connections.credentials_encrypted` must store Fernet ciphertext, never plaintext API keys.
