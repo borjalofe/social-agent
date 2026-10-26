@@ -32,11 +32,29 @@ Alembic manages schema:
 - `context_docs` — many rows per user (`user_id` FK → `users`, indexed), `title`, `body`, timestamps
 - `canal_rules` — one row per user+channel (`user_id` FK → `users`, unique `(user_id, channel)`), `body`, timestamps
 - `social_accounts` — one row per user+channel (`handle`, opaque `credentials_encrypted`), unique `(user_id, channel)`
+- `llm_connections` — one row per user+provider (`label`, Fernet `credentials_encrypted`), unique `(user_id, provider)`
 
 ```bash
 export DATABASE_URL=postgresql+psycopg://social:social@127.0.0.1:5432/social_agent_test
 uv run alembic upgrade head
 uv run alembic downgrade base   # optional
+```
+
+## Sealing LLM secrets (Fernet)
+
+`llm_connections.credentials_encrypted` must store Fernet ciphertext, never plaintext API keys.
+
+```bash
+# Generate a key once; keep it only in the environment (compose lands in a later task).
+uv run python -c "from social_agent.crypto import generate_key; print(generate_key().decode())"
+export FERNET_KEY=...   # value from generate_key
+```
+
+```python
+from social_agent.crypto import seal, unseal
+
+token = seal("sk-ant-...")  # uses FERNET_KEY
+secret = unseal(token)
 ```
 
 ## Daily audit
