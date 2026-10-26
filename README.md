@@ -7,11 +7,13 @@ Multi-user editorial agents behind Siren. Host: [github.com/borjalofe/social-age
 - Python ≥ 3.12
 - [uv](https://docs.astral.sh/uv/)
 - PostgreSQL 16+ (for migrations / schema tests)
+- Redis 7+ (for agent session payload tests / runtime)
 
 ## Local quality gates (same as PR CI)
 
 ```bash
 export DATABASE_URL=postgresql+psycopg://social:social@127.0.0.1:5432/social_agent_test
+export REDIS_URL=redis://127.0.0.1:6379/0
 uv sync --group dev
 uv run ruff check .
 uv run ruff format --check .
@@ -19,9 +21,9 @@ uv run pytest -q
 uv run pip-audit
 ```
 
-PR / `main` CI: `.github/workflows/ci.yml` (includes a Postgres service for migration tests).
+PR / `main` CI: `.github/workflows/ci.yml` (Postgres + Redis services).
 
-Migration tests skip when `DATABASE_URL` is unset.
+Migration tests skip when `DATABASE_URL` is unset. Redis integration tests skip when `REDIS_URL` is unset.
 
 ## Database migrations
 
@@ -34,12 +36,28 @@ Alembic manages schema:
 - `social_accounts` — one row per user+channel (`handle`, opaque `credentials_encrypted`), unique `(user_id, channel)`
 - `llm_connections` — one row per user+provider (`label`, Fernet `credentials_encrypted`), unique `(user_id, provider)`
 - `publications` — approved finals only (many per user+channel); `status` / `scheduled_at` / `published_at` for calendar
-- `agent_sessions` — session metadata only (`agent_name`, optional `channel`, `status`); payload stored in Redis (later task)
+- `agent_sessions` — session metadata only (`agent_name`, optional `channel`, `status`); payload in Redis via `AgentSessionPayloadStore`
 
 ```bash
 export DATABASE_URL=postgresql+psycopg://social:social@127.0.0.1:5432/social_agent_test
 uv run alembic upgrade head
 uv run alembic downgrade base   # optional
+```
+
+## Agent session payloads (Redis)
+
+Postgres `agent_sessions` holds metadata. Conversation/draft JSON lives in Redis under `agent_session:{uuid}` with a default TTL of 7 days.
+
+```python
+from uuid import uuid4
+from social_agent.sessions import AgentSessionPayloadStore
+from social_agent.sessions.redis_store import redis_from_url
+
+store = AgentSessionPayloadStore(redis_from_url())  # uses REDIS_URL
+session_id = uuid4()
+store.put(session_id, {"draft": "…", "turns": []})
+payload = store.get(session_id)
+store.delete(session_id)
 ```
 
 ## Sealing LLM secrets (Fernet)
