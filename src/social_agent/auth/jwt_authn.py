@@ -36,7 +36,7 @@ class TokenPair:
     access_token: str
     refresh_token: str
     expires_in: int
-    token_type: str = "bearer"
+    token_type: str = "bearer"  # noqa: S105 — OAuth token_type, not a password
 
     def __repr__(self) -> str:
         # Never include raw tokens in logs/repr (issue #15).
