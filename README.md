@@ -6,10 +6,12 @@ Multi-user editorial agents behind Siren. Host: [github.com/borjalofe/social-age
 
 - Python ≥ 3.12
 - [uv](https://docs.astral.sh/uv/)
+- PostgreSQL 16+ (for migrations / schema tests)
 
 ## Local quality gates (same as PR CI)
 
 ```bash
+export DATABASE_URL=postgresql+psycopg://social:social@127.0.0.1:5432/social_agent_test
 uv sync --group dev
 uv run ruff check .
 uv run ruff format --check .
@@ -17,7 +19,19 @@ uv run pytest -q
 uv run pip-audit
 ```
 
-PR / `main` CI: `.github/workflows/ci.yml`.
+PR / `main` CI: `.github/workflows/ci.yml` (includes a Postgres service for migration tests).
+
+Migration tests skip when `DATABASE_URL` is unset.
+
+## Database migrations
+
+Alembic manages schema. First table: `users` (`id`, `email` unique, `password_hash`, timestamps).
+
+```bash
+export DATABASE_URL=postgresql+psycopg://social:social@127.0.0.1:5432/social_agent_test
+uv run alembic upgrade head
+uv run alembic downgrade base   # optional
+```
 
 ## Daily audit
 
