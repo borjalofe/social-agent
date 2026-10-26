@@ -25,7 +25,10 @@ Migration tests skip when `DATABASE_URL` is unset.
 
 ## Database migrations
 
-Alembic manages schema. First table: `users` (`id`, `email` unique, `password_hash`, timestamps).
+Alembic manages schema:
+
+- `users` — `id`, unique `email`, `password_hash`, timestamps
+- `voice_docs` — one row per user (`user_id` FK → `users`, unique), `body` text, timestamps
 
 ```bash
 export DATABASE_URL=postgresql+psycopg://social:social@127.0.0.1:5432/social_agent_test
