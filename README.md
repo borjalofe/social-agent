@@ -34,6 +34,7 @@ Alembic manages schema:
 - `social_accounts` — one row per user+channel (`handle`, opaque `credentials_encrypted`), unique `(user_id, channel)`
 - `llm_connections` — one row per user+provider (`label`, Fernet `credentials_encrypted`), unique `(user_id, provider)`
 - `publications` — approved finals only (many per user+channel); `status` / `scheduled_at` / `published_at` for calendar
+- `agent_sessions` — session metadata only (`agent_name`, optional `channel`, `status`); payload stored in Redis (later task)
 
 ```bash
 export DATABASE_URL=postgresql+psycopg://social:social@127.0.0.1:5432/social_agent_test
