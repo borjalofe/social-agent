@@ -138,6 +138,21 @@ app = create_app(authn=authn)
 
 Missing or invalid Bearer → `401`. The body is built by `build_home` and passed through `SirenActionAuthz.authorize_entity`.
 
+## Siren user (profile)
+
+Authenticated `GET /user` returns the caller's Siren profile (`class: ["user"]`) from access-token claims (`user_id`, `email`). No `password_hash` or other secrets. Links: `self` → `/user`, `home` → `/`.
+
+```bash
+# same JWT_SECRET / REDIS_URL as above
+# GET /user  Authorization: Bearer <access_token>
+```
+
+```python
+from social_agent.siren import build_user
+
+entity = build_user(claims.user_id, email=claims.email)
+```
+
 ## Sealing LLM secrets (Fernet)
 
 `llm_connections.credentials_encrypted` must store Fernet ciphertext, never plaintext API keys.

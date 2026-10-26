@@ -1,6 +1,6 @@
 """FastAPI app factory: Siren home entry behind JWT access tokens."""
 
-from typing import Annotated
+from typing import Annotated, Any
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Request
 from fastapi.responses import JSONResponse
@@ -8,6 +8,7 @@ from fastapi.responses import JSONResponse
 from social_agent.auth.jwt_authn import AccessClaims, JwtAuthn, JwtAuthnError
 from social_agent.auth.siren_authz import SirenActionAuthz
 from social_agent.siren.home import SIREN_MEDIA_TYPE, build_home
+from social_agent.siren.user import build_user
 
 
 def create_app(
@@ -34,13 +35,11 @@ def create_app(
         except JwtAuthnError as exc:
             raise HTTPException(status_code=401, detail="invalid_token") from exc
 
-    @app.get("/")
-    def home(
+    def siren_response(
         request: Request,
-        claims: Annotated[AccessClaims, Depends(require_access)],
+        claims: AccessClaims,
+        entity: dict[str, Any],
     ) -> JSONResponse:
-        entity = build_home(claims.user_id, email=claims.email)
-        # Home is the caller's own entry; still run authz so actions stay filtered.
         authz_layer: SirenActionAuthz = request.app.state.authz
         authorized = authz_layer.authorize_entity(
             entity,
@@ -48,5 +47,21 @@ def create_app(
             resource_owner_id=claims.user_id,
         )
         return JSONResponse(content=authorized, media_type=SIREN_MEDIA_TYPE)
+
+    @app.get("/")
+    def home(
+        request: Request,
+        claims: Annotated[AccessClaims, Depends(require_access)],
+    ) -> JSONResponse:
+        entity = build_home(claims.user_id, email=claims.email)
+        return siren_response(request, claims, entity)
+
+    @app.get("/user")
+    def user(
+        request: Request,
+        claims: Annotated[AccessClaims, Depends(require_access)],
+    ) -> JSONResponse:
+        entity = build_user(claims.user_id, email=claims.email)
+        return siren_response(request, claims, entity)
 
     return app
