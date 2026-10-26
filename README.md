@@ -60,6 +60,28 @@ payload = store.get(session_id)
 store.delete(session_id)
 ```
 
+## JWT authn (access + refresh)
+
+Issue short-lived access JWTs and longer-lived refresh JWTs. Refresh tokens are rotated: each use consumes the `jti` stored in Redis (`refresh_jti:{jti}`). Reuse of an old refresh token raises `TokenReuseError`.
+
+```bash
+export JWT_SECRET='at-least-32-characters-of-secret!!'
+export REDIS_URL=redis://127.0.0.1:6379/0
+```
+
+```python
+from uuid import uuid4
+from social_agent.auth import JwtAuthn
+from social_agent.auth.refresh_store import RedisRefreshTokenStore
+from social_agent.sessions.redis_store import redis_from_url
+
+authn = JwtAuthn(refresh_store=RedisRefreshTokenStore(redis_from_url()))
+pair = authn.issue_pair(uuid4(), email="user@example.com")
+claims = authn.verify_access(pair.access_token)
+rotated = authn.rotate(pair.refresh_token)
+# TokenPair.__repr__ redacts secrets — never log access_token / refresh_token.
+```
+
 ## Sealing LLM secrets (Fernet)
 
 `llm_connections.credentials_encrypted` must store Fernet ciphertext, never plaintext API keys.
