@@ -9,7 +9,7 @@ from sqlalchemy import engine_from_config, pool
 
 from alembic import context
 from social_agent.db.base import Base
-from social_agent.db.models import User, VoiceDoc  # noqa: F401 — register metadata
+from social_agent.db.models import ContextDoc, User, VoiceDoc  # noqa: F401 — register metadata
 
 config = context.config
 
