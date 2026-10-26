@@ -115,6 +115,29 @@ entity = authz.authorize_entity(
 assert entity["actions"] == []
 ```
 
+## Siren home (entry + links)
+
+Authenticated `GET /` returns a Siren home entity (`application/vnd.siren+json`) with catalog `links` to M2 resources (`user`, `voice`, `context`, …). Handlers for those paths land in later issues; home only publishes the entry map.
+
+```bash
+export JWT_SECRET='at-least-32-characters-of-secret!!'
+export REDIS_URL=redis://127.0.0.1:6379/0
+```
+
+```python
+from social_agent.api import create_app
+from social_agent.auth import JwtAuthn
+from social_agent.auth.refresh_store import RedisRefreshTokenStore
+from social_agent.sessions.redis_store import redis_from_url
+
+authn = JwtAuthn(refresh_store=RedisRefreshTokenStore(redis_from_url()))
+app = create_app(authn=authn)
+# uvicorn social_agent.api.app:…  — or pass `app` to your ASGI server.
+# GET /  Authorization: Bearer <access_token>
+```
+
+Missing or invalid Bearer → `401`. The body is built by `build_home` and passed through `SirenActionAuthz.authorize_entity`.
+
 ## Sealing LLM secrets (Fernet)
 
 `llm_connections.credentials_encrypted` must store Fernet ciphertext, never plaintext API keys.
