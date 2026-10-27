@@ -1,6 +1,6 @@
 [project]
 name = "social-agent"
-version = "0.0.0"
+version = "0.1.0"
 description = "Social Agent: multi-user editorial agents behind Siren"
 readme = "README.md"
 authors = [
