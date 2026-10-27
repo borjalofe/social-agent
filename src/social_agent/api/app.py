@@ -23,6 +23,12 @@ from social_agent.siren.context import (
     build_context_item,
 )
 from social_agent.siren.home import SIREN_MEDIA_TYPE, build_home
+from social_agent.siren.llm_connections import (
+    InMemoryLlmConnectionStore,
+    LlmConnectionStore,
+    build_llm_connection_item,
+    build_llm_connections_collection,
+)
 from social_agent.siren.social_accounts import (
     InMemorySocialAccountStore,
     SocialAccountStore,
@@ -62,6 +68,17 @@ class SocialAccountUpdate(BaseModel):
     credentials: str = Field(min_length=1)
 
 
+class LlmConnectionCreate(BaseModel):
+    provider: str = Field(min_length=1, max_length=64)
+    label: str = Field(min_length=1, max_length=255)
+    credentials: str = Field(min_length=1)
+
+
+class LlmConnectionUpdate(BaseModel):
+    label: str = Field(min_length=1, max_length=255)
+    credentials: str = Field(min_length=1)
+
+
 def create_app(
     *,
     authn: JwtAuthn,
@@ -70,6 +87,7 @@ def create_app(
     context_store: ContextStore | None = None,
     canal_rule_store: CanalRuleStore | None = None,
     social_account_store: SocialAccountStore | None = None,
+    llm_connection_store: LlmConnectionStore | None = None,
     fernet_key: str | bytes | None = None,
 ) -> FastAPI:
     """Build the API. Inject `JwtAuthn` (tests) or wire from env at process start."""
@@ -82,6 +100,9 @@ def create_app(
     social_accounts: SocialAccountStore = (
         social_account_store if social_account_store is not None else InMemorySocialAccountStore()
     )
+    llm_connections: LlmConnectionStore = (
+        llm_connection_store if llm_connection_store is not None else InMemoryLlmConnectionStore()
+    )
     app = FastAPI(title="social-agent", docs_url=None, redoc_url=None)
     app.state.authn = authn
     app.state.authz = action_authz
@@ -89,6 +110,7 @@ def create_app(
     app.state.context_store = contexts
     app.state.canal_rule_store = canal_rules
     app.state.social_account_store = social_accounts
+    app.state.llm_connection_store = llm_connections
     app.state.fernet_key = fernet_key
 
     def require_access(
@@ -344,5 +366,66 @@ def create_app(
         if record is None:
             raise HTTPException(status_code=404, detail="not_found")
         return siren_response(request, claims, build_social_account_item(record))
+
+    @app.get("/llm-connections")
+    def llm_connections_list(
+        request: Request,
+        claims: Annotated[AccessClaims, Depends(require_access)],
+    ) -> JSONResponse:
+        store: LlmConnectionStore = request.app.state.llm_connection_store
+        entity = build_llm_connections_collection(
+            claims.user_id,
+            store.list(claims.user_id),
+        )
+        return siren_response(request, claims, entity)
+
+    @app.post("/llm-connections")
+    def llm_connections_create(
+        request: Request,
+        payload: LlmConnectionCreate,
+        claims: Annotated[AccessClaims, Depends(require_access)],
+    ) -> JSONResponse:
+        enforce_action(request, claims, "add-llm-connection")
+        store: LlmConnectionStore = request.app.state.llm_connection_store
+        record = store.create(
+            claims.user_id,
+            provider=payload.provider,
+            label=payload.label,
+            credentials_encrypted=seal_credentials(request, payload.credentials),
+        )
+        if record is None:
+            raise HTTPException(status_code=409, detail="provider_exists")
+        return siren_response(request, claims, build_llm_connection_item(record))
+
+    @app.get("/llm-connections/{provider}")
+    def llm_connections_get(
+        request: Request,
+        provider: str,
+        claims: Annotated[AccessClaims, Depends(require_access)],
+    ) -> JSONResponse:
+        store: LlmConnectionStore = request.app.state.llm_connection_store
+        record = store.get(claims.user_id, provider)
+        if record is None:
+            raise HTTPException(status_code=404, detail="not_found")
+        return siren_response(request, claims, build_llm_connection_item(record))
+
+    @app.put("/llm-connections/{provider}")
+    def llm_connections_put(
+        request: Request,
+        provider: str,
+        payload: LlmConnectionUpdate,
+        claims: Annotated[AccessClaims, Depends(require_access)],
+    ) -> JSONResponse:
+        enforce_action(request, claims, "update-llm-connection")
+        store: LlmConnectionStore = request.app.state.llm_connection_store
+        record = store.update(
+            claims.user_id,
+            provider,
+            label=payload.label,
+            credentials_encrypted=seal_credentials(request, payload.credentials),
+        )
+        if record is None:
+            raise HTTPException(status_code=404, detail="not_found")
+        return siren_response(request, claims, build_llm_connection_item(record))
 
     return app
