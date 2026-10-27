@@ -9,6 +9,12 @@ from pydantic import BaseModel, Field
 
 from social_agent.auth.jwt_authn import AccessClaims, JwtAuthn, JwtAuthnError
 from social_agent.auth.siren_authz import ForbiddenError, SirenActionAuthz
+from social_agent.siren.canal_rules import (
+    CanalRuleStore,
+    InMemoryCanalRuleStore,
+    build_canal_rule_item,
+    build_canal_rules_collection,
+)
 from social_agent.siren.context import (
     ContextStore,
     InMemoryContextStore,
@@ -29,22 +35,36 @@ class ContextWrite(BaseModel):
     body: str = Field(min_length=0)
 
 
+class CanalRuleCreate(BaseModel):
+    channel: str = Field(min_length=1, max_length=64)
+    body: str = Field(min_length=0)
+
+
+class CanalRuleUpdate(BaseModel):
+    body: str = Field(min_length=0)
+
+
 def create_app(
     *,
     authn: JwtAuthn,
     authz: SirenActionAuthz | None = None,
     voice_store: VoiceStore | None = None,
     context_store: ContextStore | None = None,
+    canal_rule_store: CanalRuleStore | None = None,
 ) -> FastAPI:
     """Build the API. Inject `JwtAuthn` (tests) or wire from env at process start."""
     action_authz = authz if authz is not None else SirenActionAuthz()
     voices: VoiceStore = voice_store if voice_store is not None else InMemoryVoiceStore()
     contexts: ContextStore = context_store if context_store is not None else InMemoryContextStore()
+    canal_rules: CanalRuleStore = (
+        canal_rule_store if canal_rule_store is not None else InMemoryCanalRuleStore()
+    )
     app = FastAPI(title="social-agent", docs_url=None, redoc_url=None)
     app.state.authn = authn
     app.state.authz = action_authz
     app.state.voice_store = voices
     app.state.context_store = contexts
+    app.state.canal_rule_store = canal_rules
 
     def require_access(
         authorization: Annotated[str | None, Header()] = None,
@@ -180,5 +200,57 @@ def create_app(
         if record is None:
             raise HTTPException(status_code=404, detail="not_found")
         return siren_response(request, claims, build_context_item(record))
+
+    @app.get("/canal-rules")
+    def canal_rules_list(
+        request: Request,
+        claims: Annotated[AccessClaims, Depends(require_access)],
+    ) -> JSONResponse:
+        store: CanalRuleStore = request.app.state.canal_rule_store
+        entity = build_canal_rules_collection(claims.user_id, store.list(claims.user_id))
+        return siren_response(request, claims, entity)
+
+    @app.post("/canal-rules")
+    def canal_rules_create(
+        request: Request,
+        payload: CanalRuleCreate,
+        claims: Annotated[AccessClaims, Depends(require_access)],
+    ) -> JSONResponse:
+        enforce_action(request, claims, "add-canal-rule")
+        store: CanalRuleStore = request.app.state.canal_rule_store
+        record = store.create(
+            claims.user_id,
+            channel=payload.channel,
+            body=payload.body,
+        )
+        if record is None:
+            raise HTTPException(status_code=409, detail="channel_exists")
+        return siren_response(request, claims, build_canal_rule_item(record))
+
+    @app.get("/canal-rules/{channel}")
+    def canal_rules_get(
+        request: Request,
+        channel: str,
+        claims: Annotated[AccessClaims, Depends(require_access)],
+    ) -> JSONResponse:
+        store: CanalRuleStore = request.app.state.canal_rule_store
+        record = store.get(claims.user_id, channel)
+        if record is None:
+            raise HTTPException(status_code=404, detail="not_found")
+        return siren_response(request, claims, build_canal_rule_item(record))
+
+    @app.put("/canal-rules/{channel}")
+    def canal_rules_put(
+        request: Request,
+        channel: str,
+        payload: CanalRuleUpdate,
+        claims: Annotated[AccessClaims, Depends(require_access)],
+    ) -> JSONResponse:
+        enforce_action(request, claims, "update-canal-rule")
+        store: CanalRuleStore = request.app.state.canal_rule_store
+        record = store.update(claims.user_id, channel, body=payload.body)
+        if record is None:
+            raise HTTPException(status_code=404, detail="not_found")
+        return siren_response(request, claims, build_canal_rule_item(record))
 
     return app
