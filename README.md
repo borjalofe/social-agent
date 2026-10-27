@@ -223,6 +223,24 @@ app = create_app(
 )
 ```
 
+## Siren llm-connections
+
+One sealed LLM credential set per user+provider. Same confidentiality rules as social-accounts: Fernet at the API boundary; Siren exposes `provider`, `label`, `credentials_set` only.
+
+- `GET /llm-connections` — collection + `add-llm-connection`
+- `POST /llm-connections` — `{"provider", "label", "credentials"}` (duplicate → `409`)
+- `GET /llm-connections/{provider}` — item with `update-llm-connection`
+- `PUT /llm-connections/{provider}` — rotate `label` + `credentials`
+
+```python
+from social_agent.siren import InMemoryLlmConnectionStore
+
+app = create_app(
+    authn=authn,
+    llm_connection_store=InMemoryLlmConnectionStore(),
+)
+```
+
 ## Sealing LLM secrets (Fernet)
 
 `llm_connections.credentials_encrypted` and social-account credentials must store Fernet ciphertext, never plaintext API keys.
