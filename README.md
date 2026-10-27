@@ -202,9 +202,30 @@ from social_agent.siren import InMemoryCanalRuleStore
 app = create_app(authn=authn, canal_rule_store=InMemoryCanalRuleStore())
 ```
 
+## Siren social-accounts
+
+One network binding per user+channel. Requests accept plaintext `credentials`; the API Fernet-seals them before storage. Siren responses expose only `handle` + `credentials_set` — never plaintext or ciphertext.
+
+- `GET /social-accounts` — collection + `add-social-account`
+- `POST /social-accounts` — `{"channel", "handle", "credentials"}` (duplicate → `409`)
+- `GET /social-accounts/{channel}` — item with `update-social-account`
+- `PUT /social-accounts/{channel}` — rotate `handle` + `credentials`
+
+Requires `FERNET_KEY` (or `create_app(..., fernet_key=…)`).
+
+```python
+from social_agent.siren import InMemorySocialAccountStore
+
+app = create_app(
+    authn=authn,
+    social_account_store=InMemorySocialAccountStore(),
+    fernet_key=None,  # uses FERNET_KEY from the environment
+)
+```
+
 ## Sealing LLM secrets (Fernet)
 
-`llm_connections.credentials_encrypted` must store Fernet ciphertext, never plaintext API keys.
+`llm_connections.credentials_encrypted` and social-account credentials must store Fernet ciphertext, never plaintext API keys.
 
 ```bash
 # Generate a key once; keep it only in the environment (compose lands in a later task).
