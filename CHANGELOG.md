@@ -26,4 +26,9 @@ First M2 MVP slice after ADK `copy_linkedin`: Siren API + auth + session stores 
 - `copy_linkedin` is draft-only (no publish tools)
 - `opentelemetry-api` forced to ≥1.45.1 (CVE-2026-114603) while google-adk pins ≤1.44
 
+### Announcement
+
+- Blog (canonical content repo): [EN](https://github.com/borjalofe/blog/blob/main/content/posts/en/social-agent-0-1-0.md) · [ES](https://github.com/borjalofe/blog/blob/main/content/posts/es/social-agent-0-1-0.md)
+- Network drafts live as vault `Publication` notes (LinkedIn / X / Medium); public URLs land when those posts ship
+
 [0.1.0]: https://github.com/borjalofe/social-agent/releases/tag/0.1.0
