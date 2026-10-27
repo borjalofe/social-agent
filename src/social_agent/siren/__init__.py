@@ -15,6 +15,13 @@ from social_agent.siren.context import (
     build_context_item,
 )
 from social_agent.siren.home import EXPECTED_HOME_RELS, SIREN_MEDIA_TYPE, build_home
+from social_agent.siren.llm_connections import (
+    EXPECTED_LLM_CONNECTIONS_COLLECTION_RELS,
+    InMemoryLlmConnectionStore,
+    LlmConnectionRecord,
+    build_llm_connection_item,
+    build_llm_connections_collection,
+)
 from social_agent.siren.social_accounts import (
     EXPECTED_SOCIAL_ACCOUNTS_COLLECTION_RELS,
     InMemorySocialAccountStore,
@@ -34,6 +41,7 @@ __all__ = [
     "EXPECTED_CANAL_RULES_COLLECTION_RELS",
     "EXPECTED_CONTEXT_COLLECTION_RELS",
     "EXPECTED_HOME_RELS",
+    "EXPECTED_LLM_CONNECTIONS_COLLECTION_RELS",
     "EXPECTED_SOCIAL_ACCOUNTS_COLLECTION_RELS",
     "EXPECTED_USER_RELS",
     "EXPECTED_VOICE_RELS",
@@ -41,8 +49,10 @@ __all__ = [
     "ContextRecord",
     "InMemoryCanalRuleStore",
     "InMemoryContextStore",
+    "InMemoryLlmConnectionStore",
     "InMemorySocialAccountStore",
     "InMemoryVoiceStore",
+    "LlmConnectionRecord",
     "SIREN_MEDIA_TYPE",
     "SocialAccountRecord",
     "VoiceRecord",
@@ -51,6 +61,8 @@ __all__ = [
     "build_context_collection",
     "build_context_item",
     "build_home",
+    "build_llm_connection_item",
+    "build_llm_connections_collection",
     "build_social_account_item",
     "build_social_accounts_collection",
     "build_user",
