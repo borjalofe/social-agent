@@ -19,6 +19,7 @@ from social_agent.siren.agent_run import (
     build_agent_run_collection,
     build_agent_run_item,
 )
+from social_agent.siren.approve_draft import ApproveDraftError, approve_draft
 from social_agent.siren.canal_rules import (
     CanalRuleStore,
     InMemoryCanalRuleStore,
@@ -598,5 +599,26 @@ def create_app(
             claims,
             build_agent_run_item(record, payload=session_payload),
         )
+
+    @app.post("/agent-run/{run_id}/approve")
+    def agent_run_approve(
+        request: Request,
+        run_id: UUID,
+        claims: Annotated[AccessClaims, Depends(require_access)],
+    ) -> JSONResponse:
+        enforce_action(request, claims, "approve-draft")
+        try:
+            _run, publication, _payload = approve_draft(
+                claims.user_id,
+                run_id,
+                agent_run_store=request.app.state.agent_run_store,
+                payload_store=request.app.state.agent_run_payload_store,
+                publication_store=request.app.state.publication_store,
+            )
+        except ApproveDraftError as exc:
+            if exc.code == "not_found":
+                raise HTTPException(status_code=404, detail="not_found") from exc
+            raise HTTPException(status_code=409, detail=exc.code) from exc
+        return siren_response(request, claims, build_publication_item(publication))
 
     return app

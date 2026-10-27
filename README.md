@@ -309,11 +309,12 @@ agent = build_copy_linkedin_agent(instruction_provider=provider)
 
 ## Siren agent-run
 
-Starts an agent session (metadata + conversation payload). Invoking ADK `root_agent` from this resource lands later; for now it only creates/lists/gets sessions. Statuses: `open` | `waiting_approval` | `completed` | `failed` (start always `open`). Payload shape: `{agent_name, channel, input, turns}` — inject `AgentSessionPayloadStore` (Redis) in production.
+Starts an agent session (metadata + conversation payload). Invoking ADK `root_agent` from this resource lands later; for now it only creates/lists/gets sessions. Statuses: `open` | `waiting_approval` | `completed` | `failed` (start always `open`). Payload shape: `{agent_name, channel, input, turns, draft?}` — inject `AgentSessionPayloadStore` (Redis) in production.
 
 - `GET /agent-run` — collection + `start-agent-run` (list entities omit `payload`)
 - `POST /agent-run` — `{"agent_name", "channel?", "input?"}` → item with payload
-- `GET /agent-run/{id}` — item with payload from the payload store
+- `GET /agent-run/{id}` — item with payload; `approve-draft` when status is `open`/`waiting_approval` and `payload.draft` is set
+- `POST /agent-run/{id}/approve` — persist draft as an `approved` publication; mark run `completed` (body → calendar; `409` if no draft / already done)
 
 ```python
 from social_agent.siren import InMemoryAgentRunPayloadStore, InMemoryAgentRunStore
@@ -324,6 +325,7 @@ app = create_app(
     agent_run_payload_store=InMemoryAgentRunPayloadStore(),
 )
 # Or: agent_run_payload_store=AgentSessionPayloadStore(redis_from_url())
+# Seed draft in payload, then POST /agent-run/{id}/approve
 ```
 
 ## Sealing LLM secrets (Fernet)

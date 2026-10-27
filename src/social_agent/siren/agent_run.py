@@ -27,6 +27,14 @@ START_AGENT_RUN_ACTION: dict[str, Any] = {
     ],
 }
 
+APPROVE_DRAFT_ACTION: dict[str, Any] = {
+    "name": "approve-draft",
+    "method": "POST",
+    "href": "",  # filled per item
+    "type": "application/json",
+    "fields": [],
+}
+
 
 @dataclass(frozen=True)
 class AgentRunRecord:
@@ -50,6 +58,14 @@ class AgentRunStore(Protocol):
         channel: str | None,
         status: str = "open",
     ) -> AgentRunRecord: ...
+
+    def update_status(
+        self,
+        user_id: uuid.UUID,
+        run_id: uuid.UUID,
+        *,
+        status: str,
+    ) -> AgentRunRecord | None: ...
 
 
 class AgentRunPayloadStore(Protocol):
@@ -91,6 +107,26 @@ class InMemoryAgentRunStore:
         self._runs[record.id] = record
         return record
 
+    def update_status(
+        self,
+        user_id: uuid.UUID,
+        run_id: uuid.UUID,
+        *,
+        status: str,
+    ) -> AgentRunRecord | None:
+        existing = self.get(user_id, run_id)
+        if existing is None:
+            return None
+        record = AgentRunRecord(
+            id=existing.id,
+            user_id=existing.user_id,
+            agent_name=existing.agent_name,
+            channel=existing.channel,
+            status=status,
+        )
+        self._runs[run_id] = record
+        return record
+
 
 class InMemoryAgentRunPayloadStore:
     """Process-local payloads (swap for AgentSessionPayloadStore + Redis)."""
@@ -120,6 +156,18 @@ def _meta_properties(record: AgentRunRecord) -> dict[str, Any]:
     }
 
 
+def _payload_has_draft(payload: dict[str, Any] | None) -> bool:
+    if not payload:
+        return False
+    raw = payload.get("draft")
+    if isinstance(raw, str):
+        return bool(raw.strip())
+    if isinstance(raw, dict):
+        body = raw.get("body")
+        return isinstance(body, str) and bool(body.strip())
+    return False
+
+
 def build_agent_run_item(
     record: AgentRunRecord,
     *,
@@ -128,6 +176,14 @@ def build_agent_run_item(
     """Build a Siren agent-run item; payload is conversation/draft JSON (not secrets)."""
     properties = _meta_properties(record)
     properties["payload"] = payload if payload is not None else {}
+    actions: list[dict[str, Any]] = []
+    if record.status in {"open", "waiting_approval"} and _payload_has_draft(payload):
+        actions.append(
+            {
+                **APPROVE_DRAFT_ACTION,
+                "href": f"{_item_href(record.id)}/approve",
+            }
+        )
     return {
         "class": ["agent-run", "item"],
         "properties": properties,
@@ -137,7 +193,7 @@ def build_agent_run_item(
             {"rel": ["collection"], "href": "/agent-run"},
             {"rel": ["home"], "href": "/"},
         ],
-        "actions": [],
+        "actions": actions,
     }
 
 
