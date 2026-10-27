@@ -9,6 +9,7 @@ from pydantic import BaseModel, Field
 
 from social_agent.auth.jwt_authn import AccessClaims, JwtAuthn, JwtAuthnError
 from social_agent.auth.siren_authz import ForbiddenError, SirenActionAuthz
+from social_agent.crypto import FernetBoxError, seal
 from social_agent.siren.canal_rules import (
     CanalRuleStore,
     InMemoryCanalRuleStore,
@@ -22,6 +23,12 @@ from social_agent.siren.context import (
     build_context_item,
 )
 from social_agent.siren.home import SIREN_MEDIA_TYPE, build_home
+from social_agent.siren.social_accounts import (
+    InMemorySocialAccountStore,
+    SocialAccountStore,
+    build_social_account_item,
+    build_social_accounts_collection,
+)
 from social_agent.siren.user import build_user
 from social_agent.siren.voice import InMemoryVoiceStore, VoiceStore, build_voice
 
@@ -44,6 +51,17 @@ class CanalRuleUpdate(BaseModel):
     body: str = Field(min_length=0)
 
 
+class SocialAccountCreate(BaseModel):
+    channel: str = Field(min_length=1, max_length=64)
+    handle: str = Field(min_length=1, max_length=255)
+    credentials: str = Field(min_length=1)
+
+
+class SocialAccountUpdate(BaseModel):
+    handle: str = Field(min_length=1, max_length=255)
+    credentials: str = Field(min_length=1)
+
+
 def create_app(
     *,
     authn: JwtAuthn,
@@ -51,6 +69,8 @@ def create_app(
     voice_store: VoiceStore | None = None,
     context_store: ContextStore | None = None,
     canal_rule_store: CanalRuleStore | None = None,
+    social_account_store: SocialAccountStore | None = None,
+    fernet_key: str | bytes | None = None,
 ) -> FastAPI:
     """Build the API. Inject `JwtAuthn` (tests) or wire from env at process start."""
     action_authz = authz if authz is not None else SirenActionAuthz()
@@ -59,12 +79,17 @@ def create_app(
     canal_rules: CanalRuleStore = (
         canal_rule_store if canal_rule_store is not None else InMemoryCanalRuleStore()
     )
+    social_accounts: SocialAccountStore = (
+        social_account_store if social_account_store is not None else InMemorySocialAccountStore()
+    )
     app = FastAPI(title="social-agent", docs_url=None, redoc_url=None)
     app.state.authn = authn
     app.state.authz = action_authz
     app.state.voice_store = voices
     app.state.context_store = contexts
     app.state.canal_rule_store = canal_rules
+    app.state.social_account_store = social_accounts
+    app.state.fernet_key = fernet_key
 
     def require_access(
         authorization: Annotated[str | None, Header()] = None,
@@ -252,5 +277,72 @@ def create_app(
         if record is None:
             raise HTTPException(status_code=404, detail="not_found")
         return siren_response(request, claims, build_canal_rule_item(record))
+
+    def seal_credentials(request: Request, plaintext: str) -> str:
+        try:
+            return seal(plaintext, key=request.app.state.fernet_key)
+        except FernetBoxError as exc:
+            raise HTTPException(status_code=500, detail="fernet_unavailable") from exc
+
+    @app.get("/social-accounts")
+    def social_accounts_list(
+        request: Request,
+        claims: Annotated[AccessClaims, Depends(require_access)],
+    ) -> JSONResponse:
+        store: SocialAccountStore = request.app.state.social_account_store
+        entity = build_social_accounts_collection(
+            claims.user_id,
+            store.list(claims.user_id),
+        )
+        return siren_response(request, claims, entity)
+
+    @app.post("/social-accounts")
+    def social_accounts_create(
+        request: Request,
+        payload: SocialAccountCreate,
+        claims: Annotated[AccessClaims, Depends(require_access)],
+    ) -> JSONResponse:
+        enforce_action(request, claims, "add-social-account")
+        store: SocialAccountStore = request.app.state.social_account_store
+        record = store.create(
+            claims.user_id,
+            channel=payload.channel,
+            handle=payload.handle,
+            credentials_encrypted=seal_credentials(request, payload.credentials),
+        )
+        if record is None:
+            raise HTTPException(status_code=409, detail="channel_exists")
+        return siren_response(request, claims, build_social_account_item(record))
+
+    @app.get("/social-accounts/{channel}")
+    def social_accounts_get(
+        request: Request,
+        channel: str,
+        claims: Annotated[AccessClaims, Depends(require_access)],
+    ) -> JSONResponse:
+        store: SocialAccountStore = request.app.state.social_account_store
+        record = store.get(claims.user_id, channel)
+        if record is None:
+            raise HTTPException(status_code=404, detail="not_found")
+        return siren_response(request, claims, build_social_account_item(record))
+
+    @app.put("/social-accounts/{channel}")
+    def social_accounts_put(
+        request: Request,
+        channel: str,
+        payload: SocialAccountUpdate,
+        claims: Annotated[AccessClaims, Depends(require_access)],
+    ) -> JSONResponse:
+        enforce_action(request, claims, "update-social-account")
+        store: SocialAccountStore = request.app.state.social_account_store
+        record = store.update(
+            claims.user_id,
+            channel,
+            handle=payload.handle,
+            credentials_encrypted=seal_credentials(request, payload.credentials),
+        )
+        if record is None:
+            raise HTTPException(status_code=404, detail="not_found")
+        return siren_response(request, claims, build_social_account_item(record))
 
     return app
