@@ -153,6 +153,21 @@ from social_agent.siren import build_user
 entity = build_user(claims.user_id, email=claims.email)
 ```
 
+## Siren voice
+
+Authenticated `GET /voice` returns the caller's editorial voice (`class: ["voice"]`) with `body` and an `update-voice` action (`PUT /voice`). `PUT /voice` with JSON `{"body": "…"}` persists via the injected `VoiceStore` (default: in-memory; swap for Postgres-backed store at runtime).
+
+```python
+from social_agent.api import create_app
+from social_agent.siren import InMemoryVoiceStore, build_voice
+
+app = create_app(authn=authn, voice_store=InMemoryVoiceStore())
+# GET|PUT /voice  Authorization: Bearer <access_token>
+entity = build_voice(user_id, body="tono directo")
+```
+
+Missing or invalid Bearer → `401`. Unauthorized `update-voice` → `403`.
+
 ## Sealing LLM secrets (Fernet)
 
 `llm_connections.credentials_encrypted` must store Fernet ciphertext, never plaintext API keys.
