@@ -185,6 +185,23 @@ from social_agent.siren import InMemoryContextStore, build_context_collection
 app = create_app(authn=authn, context_store=InMemoryContextStore())
 ```
 
+## Siren canal-rules
+
+One rules document per user+channel (matches `canal_rules` uniqueness):
+
+- `GET /canal-rules` — collection + `add-canal-rule` (`POST`)
+- `POST /canal-rules` — JSON `{"channel": "linkedin", "body": "…"}` (duplicate channel → `409`)
+- `GET /canal-rules/{channel}` — item with `update-canal-rule`
+- `PUT /canal-rules/{channel}` — JSON `{"body": "…"}`
+
+Default store: `InMemoryCanalRuleStore`. Cross-user channels → `404`.
+
+```python
+from social_agent.siren import InMemoryCanalRuleStore
+
+app = create_app(authn=authn, canal_rule_store=InMemoryCanalRuleStore())
+```
+
 ## Sealing LLM secrets (Fernet)
 
 `llm_connections.credentials_encrypted` must store Fernet ciphertext, never plaintext API keys.
