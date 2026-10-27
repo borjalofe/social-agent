@@ -17,6 +17,7 @@ dependencies = [
     "PyJWT>=2.9",
     "fastapi>=0.162.0",
     "google-adk>=2.9",
+    "uvicorn[standard]>=0.30",
 ]
 
 [build-system]

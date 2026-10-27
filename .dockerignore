@@ -1,0 +1,14 @@
+.venv
+.git
+.github
+.pytest_cache
+.ruff_cache
+.mypy_cache
+.cursor
+**/__pycache__
+**/*.pyc
+.env
+*.sqlite3
+docs
+tests
+agent-transcripts
