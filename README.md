@@ -258,7 +258,7 @@ app = create_app(authn=authn, publication_store=InMemoryPublicationStore())
 
 ## ADK root_agent (router)
 
-Google ADK swarm entry: `root_agent` only routes to specialist sub-agents (it does not write channel copy). Specialists (`copy_linkedin`, …) and `InstructionProvider` land in later tasks. Override the model with `SOCIAL_AGENT_ROOT_MODEL` or `build_root_agent(model=…)`.
+Google ADK swarm entry: `root_agent` only routes to specialist sub-agents (it does not write channel copy). Specialists (`copy_linkedin`, …) land in later tasks. Override the model with `SOCIAL_AGENT_ROOT_MODEL` or `build_root_agent(model=…)`.
 
 ```python
 from google.adk.agents import Agent
@@ -274,6 +274,27 @@ specialist = Agent(
     model="gemini-2.0-flash",
 )
 router = build_root_agent(sub_agents=[specialist])
+```
+
+## ADK InstructionProvider
+
+Packs per-user editorial data from injectable stores into agent instructions: voice + context docs + canal rules. Never includes credentials (`social_accounts` / `llm_connections`). Use `pack(...)` for a static string or `for_agent(...)` as ADK `instruction=` (reads `ctx.user_id`; optional `channel` arg or `session.state["channel"]`).
+
+```python
+from social_agent.agents import InstructionProvider
+from social_agent.siren import (
+    InMemoryCanalRuleStore,
+    InMemoryContextStore,
+    InMemoryVoiceStore,
+)
+
+provider = InstructionProvider(
+    voice_store=InMemoryVoiceStore(),
+    context_store=InMemoryContextStore(),
+    canal_rule_store=InMemoryCanalRuleStore(),
+)
+text = provider.pack(user_id, channel="linkedin", base_instruction="Write a post.")
+# Agent(..., instruction=provider.for_agent("Write a post.", channel="linkedin"))
 ```
 
 ## Siren agent-run
