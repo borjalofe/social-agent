@@ -16,6 +16,7 @@ dependencies = [
     "redis>=5",
     "PyJWT>=2.9",
     "fastapi>=0.162.0",
+    "google-adk>=2.9",
 ]
 
 [build-system]
@@ -27,6 +28,8 @@ packages = ["src/social_agent"]
 
 [tool.uv]
 package = true
+# google-adk caps opentelemetry-api at 1.44; force CVE-2026-114603 fix until ADK widens the pin.
+override-dependencies = ["opentelemetry-api>=1.45.1"]
 
 [dependency-groups]
 dev = [

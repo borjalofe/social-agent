@@ -256,9 +256,29 @@ from social_agent.siren import InMemoryPublicationStore
 app = create_app(authn=authn, publication_store=InMemoryPublicationStore())
 ```
 
+## ADK root_agent (router)
+
+Google ADK swarm entry: `root_agent` only routes to specialist sub-agents (it does not write channel copy). Specialists (`copy_linkedin`, …) and `InstructionProvider` land in later tasks. Override the model with `SOCIAL_AGENT_ROOT_MODEL` or `build_root_agent(model=…)`.
+
+```python
+from google.adk.agents import Agent
+from social_agent.agents import build_root_agent, root_agent
+
+assert root_agent.name == "root_agent"
+assert root_agent.sub_agents == []  # specialists register later
+
+specialist = Agent(
+    name="copy_linkedin",
+    description="…",
+    instruction="…",
+    model="gemini-2.0-flash",
+)
+router = build_root_agent(sub_agents=[specialist])
+```
+
 ## Siren agent-run
 
-Starts an agent session (metadata + conversation payload). ADK invocation lands later; this resource only creates/lists/gets sessions. Statuses: `open` | `waiting_approval` | `completed` | `failed` (start always `open`). Payload shape: `{agent_name, channel, input, turns}` — inject `AgentSessionPayloadStore` (Redis) in production.
+Starts an agent session (metadata + conversation payload). Invoking ADK `root_agent` from this resource lands later; for now it only creates/lists/gets sessions. Statuses: `open` | `waiting_approval` | `completed` | `failed` (start always `open`). Payload shape: `{agent_name, channel, input, turns}` — inject `AgentSessionPayloadStore` (Redis) in production.
 
 - `GET /agent-run` — collection + `start-agent-run` (list entities omit `payload`)
 - `POST /agent-run` — `{"agent_name", "channel?", "input?"}` → item with payload
