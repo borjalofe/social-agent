@@ -256,6 +256,25 @@ from social_agent.siren import InMemoryPublicationStore
 app = create_app(authn=authn, publication_store=InMemoryPublicationStore())
 ```
 
+## Siren agent-run
+
+Starts an agent session (metadata + conversation payload). ADK invocation lands later; this resource only creates/lists/gets sessions. Statuses: `open` | `waiting_approval` | `completed` | `failed` (start always `open`). Payload shape: `{agent_name, channel, input, turns}` — inject `AgentSessionPayloadStore` (Redis) in production.
+
+- `GET /agent-run` — collection + `start-agent-run` (list entities omit `payload`)
+- `POST /agent-run` — `{"agent_name", "channel?", "input?"}` → item with payload
+- `GET /agent-run/{id}` — item with payload from the payload store
+
+```python
+from social_agent.siren import InMemoryAgentRunPayloadStore, InMemoryAgentRunStore
+
+app = create_app(
+    authn=authn,
+    agent_run_store=InMemoryAgentRunStore(),
+    agent_run_payload_store=InMemoryAgentRunPayloadStore(),
+)
+# Or: agent_run_payload_store=AgentSessionPayloadStore(redis_from_url())
+```
+
 ## Sealing LLM secrets (Fernet)
 
 `llm_connections.credentials_encrypted` and social-account credentials must store Fernet ciphertext, never plaintext API keys.
