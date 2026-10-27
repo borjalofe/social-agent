@@ -1,6 +1,7 @@
 """FastAPI app factory: Siren resources behind JWT access tokens."""
 
-from typing import Annotated, Any
+from datetime import datetime
+from typing import Annotated, Any, Literal
 from uuid import UUID
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Request
@@ -28,6 +29,12 @@ from social_agent.siren.llm_connections import (
     LlmConnectionStore,
     build_llm_connection_item,
     build_llm_connections_collection,
+)
+from social_agent.siren.publications import (
+    InMemoryPublicationStore,
+    PublicationStore,
+    build_publication_item,
+    build_publications_collection,
 )
 from social_agent.siren.social_accounts import (
     InMemorySocialAccountStore,
@@ -79,6 +86,15 @@ class LlmConnectionUpdate(BaseModel):
     credentials: str = Field(min_length=1)
 
 
+class PublicationWrite(BaseModel):
+    channel: str = Field(min_length=1, max_length=64)
+    title: str | None = Field(default=None, max_length=512)
+    body: str = Field(min_length=0)
+    status: Literal["approved", "scheduled", "published"] = "approved"
+    scheduled_at: datetime | None = None
+    published_at: datetime | None = None
+
+
 def create_app(
     *,
     authn: JwtAuthn,
@@ -88,6 +104,7 @@ def create_app(
     canal_rule_store: CanalRuleStore | None = None,
     social_account_store: SocialAccountStore | None = None,
     llm_connection_store: LlmConnectionStore | None = None,
+    publication_store: PublicationStore | None = None,
     fernet_key: str | bytes | None = None,
 ) -> FastAPI:
     """Build the API. Inject `JwtAuthn` (tests) or wire from env at process start."""
@@ -103,6 +120,9 @@ def create_app(
     llm_connections: LlmConnectionStore = (
         llm_connection_store if llm_connection_store is not None else InMemoryLlmConnectionStore()
     )
+    publications: PublicationStore = (
+        publication_store if publication_store is not None else InMemoryPublicationStore()
+    )
     app = FastAPI(title="social-agent", docs_url=None, redoc_url=None)
     app.state.authn = authn
     app.state.authz = action_authz
@@ -111,6 +131,7 @@ def create_app(
     app.state.canal_rule_store = canal_rules
     app.state.social_account_store = social_accounts
     app.state.llm_connection_store = llm_connections
+    app.state.publication_store = publications
     app.state.fernet_key = fernet_key
 
     def require_access(
@@ -427,5 +448,68 @@ def create_app(
         if record is None:
             raise HTTPException(status_code=404, detail="not_found")
         return siren_response(request, claims, build_llm_connection_item(record))
+
+    @app.get("/publications")
+    def publications_list(
+        request: Request,
+        claims: Annotated[AccessClaims, Depends(require_access)],
+    ) -> JSONResponse:
+        store: PublicationStore = request.app.state.publication_store
+        entity = build_publications_collection(claims.user_id, store.list(claims.user_id))
+        return siren_response(request, claims, entity)
+
+    @app.post("/publications")
+    def publications_create(
+        request: Request,
+        payload: PublicationWrite,
+        claims: Annotated[AccessClaims, Depends(require_access)],
+    ) -> JSONResponse:
+        enforce_action(request, claims, "add-publication")
+        store: PublicationStore = request.app.state.publication_store
+        record = store.create(
+            claims.user_id,
+            channel=payload.channel,
+            title=payload.title,
+            body=payload.body,
+            status=payload.status,
+            scheduled_at=payload.scheduled_at,
+            published_at=payload.published_at,
+        )
+        return siren_response(request, claims, build_publication_item(record))
+
+    @app.get("/publications/{pub_id}")
+    def publications_get(
+        request: Request,
+        pub_id: UUID,
+        claims: Annotated[AccessClaims, Depends(require_access)],
+    ) -> JSONResponse:
+        store: PublicationStore = request.app.state.publication_store
+        record = store.get(claims.user_id, pub_id)
+        if record is None:
+            raise HTTPException(status_code=404, detail="not_found")
+        return siren_response(request, claims, build_publication_item(record))
+
+    @app.put("/publications/{pub_id}")
+    def publications_put(
+        request: Request,
+        pub_id: UUID,
+        payload: PublicationWrite,
+        claims: Annotated[AccessClaims, Depends(require_access)],
+    ) -> JSONResponse:
+        enforce_action(request, claims, "update-publication")
+        store: PublicationStore = request.app.state.publication_store
+        record = store.update(
+            claims.user_id,
+            pub_id,
+            channel=payload.channel,
+            title=payload.title,
+            body=payload.body,
+            status=payload.status,
+            scheduled_at=payload.scheduled_at,
+            published_at=payload.published_at,
+        )
+        if record is None:
+            raise HTTPException(status_code=404, detail="not_found")
+        return siren_response(request, claims, build_publication_item(record))
 
     return app
