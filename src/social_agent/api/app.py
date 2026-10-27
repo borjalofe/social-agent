@@ -11,6 +11,14 @@ from pydantic import BaseModel, Field
 from social_agent.auth.jwt_authn import AccessClaims, JwtAuthn, JwtAuthnError
 from social_agent.auth.siren_authz import ForbiddenError, SirenActionAuthz
 from social_agent.crypto import FernetBoxError, seal
+from social_agent.siren.agent_run import (
+    AgentRunPayloadStore,
+    AgentRunStore,
+    InMemoryAgentRunPayloadStore,
+    InMemoryAgentRunStore,
+    build_agent_run_collection,
+    build_agent_run_item,
+)
 from social_agent.siren.canal_rules import (
     CanalRuleStore,
     InMemoryCanalRuleStore,
@@ -95,6 +103,12 @@ class PublicationWrite(BaseModel):
     published_at: datetime | None = None
 
 
+class AgentRunStart(BaseModel):
+    agent_name: str = Field(min_length=1, max_length=128)
+    channel: str | None = Field(default=None, max_length=64)
+    input: str = Field(default="", min_length=0)
+
+
 def create_app(
     *,
     authn: JwtAuthn,
@@ -105,6 +119,8 @@ def create_app(
     social_account_store: SocialAccountStore | None = None,
     llm_connection_store: LlmConnectionStore | None = None,
     publication_store: PublicationStore | None = None,
+    agent_run_store: AgentRunStore | None = None,
+    agent_run_payload_store: AgentRunPayloadStore | None = None,
     fernet_key: str | bytes | None = None,
 ) -> FastAPI:
     """Build the API. Inject `JwtAuthn` (tests) or wire from env at process start."""
@@ -123,6 +139,14 @@ def create_app(
     publications: PublicationStore = (
         publication_store if publication_store is not None else InMemoryPublicationStore()
     )
+    agent_runs: AgentRunStore = (
+        agent_run_store if agent_run_store is not None else InMemoryAgentRunStore()
+    )
+    agent_run_payloads: AgentRunPayloadStore = (
+        agent_run_payload_store
+        if agent_run_payload_store is not None
+        else InMemoryAgentRunPayloadStore()
+    )
     app = FastAPI(title="social-agent", docs_url=None, redoc_url=None)
     app.state.authn = authn
     app.state.authz = action_authz
@@ -132,6 +156,8 @@ def create_app(
     app.state.social_account_store = social_accounts
     app.state.llm_connection_store = llm_connections
     app.state.publication_store = publications
+    app.state.agent_run_store = agent_runs
+    app.state.agent_run_payload_store = agent_run_payloads
     app.state.fernet_key = fernet_key
 
     def require_access(
@@ -511,5 +537,60 @@ def create_app(
         if record is None:
             raise HTTPException(status_code=404, detail="not_found")
         return siren_response(request, claims, build_publication_item(record))
+
+    @app.get("/agent-run")
+    def agent_run_list(
+        request: Request,
+        claims: Annotated[AccessClaims, Depends(require_access)],
+    ) -> JSONResponse:
+        store: AgentRunStore = request.app.state.agent_run_store
+        entity = build_agent_run_collection(claims.user_id, store.list(claims.user_id))
+        return siren_response(request, claims, entity)
+
+    @app.post("/agent-run")
+    def agent_run_start(
+        request: Request,
+        payload: AgentRunStart,
+        claims: Annotated[AccessClaims, Depends(require_access)],
+    ) -> JSONResponse:
+        enforce_action(request, claims, "start-agent-run")
+        store: AgentRunStore = request.app.state.agent_run_store
+        payloads: AgentRunPayloadStore = request.app.state.agent_run_payload_store
+        record = store.create(
+            claims.user_id,
+            agent_name=payload.agent_name,
+            channel=payload.channel,
+            status="open",
+        )
+        session_payload = {
+            "agent_name": record.agent_name,
+            "channel": record.channel,
+            "input": payload.input,
+            "turns": [],
+        }
+        payloads.put(record.id, session_payload)
+        return siren_response(
+            request,
+            claims,
+            build_agent_run_item(record, payload=session_payload),
+        )
+
+    @app.get("/agent-run/{run_id}")
+    def agent_run_get(
+        request: Request,
+        run_id: UUID,
+        claims: Annotated[AccessClaims, Depends(require_access)],
+    ) -> JSONResponse:
+        store: AgentRunStore = request.app.state.agent_run_store
+        payloads: AgentRunPayloadStore = request.app.state.agent_run_payload_store
+        record = store.get(claims.user_id, run_id)
+        if record is None:
+            raise HTTPException(status_code=404, detail="not_found")
+        session_payload = payloads.get(run_id)
+        return siren_response(
+            request,
+            claims,
+            build_agent_run_item(record, payload=session_payload),
+        )
 
     return app

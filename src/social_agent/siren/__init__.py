@@ -1,5 +1,13 @@
 """Siren hypermedia resources."""
 
+from social_agent.siren.agent_run import (
+    EXPECTED_AGENT_RUN_COLLECTION_RELS,
+    AgentRunRecord,
+    InMemoryAgentRunPayloadStore,
+    InMemoryAgentRunStore,
+    build_agent_run_collection,
+    build_agent_run_item,
+)
 from social_agent.siren.canal_rules import (
     EXPECTED_CANAL_RULES_COLLECTION_RELS,
     CanalRuleRecord,
@@ -45,6 +53,7 @@ from social_agent.siren.voice import (
 )
 
 __all__ = [
+    "EXPECTED_AGENT_RUN_COLLECTION_RELS",
     "EXPECTED_CANAL_RULES_COLLECTION_RELS",
     "EXPECTED_CONTEXT_COLLECTION_RELS",
     "EXPECTED_HOME_RELS",
@@ -53,8 +62,11 @@ __all__ = [
     "EXPECTED_SOCIAL_ACCOUNTS_COLLECTION_RELS",
     "EXPECTED_USER_RELS",
     "EXPECTED_VOICE_RELS",
+    "AgentRunRecord",
     "CanalRuleRecord",
     "ContextRecord",
+    "InMemoryAgentRunPayloadStore",
+    "InMemoryAgentRunStore",
     "InMemoryCanalRuleStore",
     "InMemoryContextStore",
     "InMemoryLlmConnectionStore",
@@ -66,6 +78,8 @@ __all__ = [
     "SIREN_MEDIA_TYPE",
     "SocialAccountRecord",
     "VoiceRecord",
+    "build_agent_run_collection",
+    "build_agent_run_item",
     "build_canal_rule_item",
     "build_canal_rules_collection",
     "build_context_collection",
