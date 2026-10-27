@@ -12,6 +12,31 @@ Multi-user editorial agents behind Siren. Host: [github.com/borjalofe/social-age
 - [uv](https://docs.astral.sh/uv/)
 - PostgreSQL 16+ (for migrations / schema tests)
 - Redis 7+ (for agent session payload tests / runtime)
+- Docker Compose (optional; local runtime stack)
+
+## Local runtime (Compose)
+
+`compose.yaml` starts Postgres 16, Redis 7, and the API (`uvicorn` factory). Secrets and Claude/LLM keys come from `.env` (never commit it).
+
+```bash
+cp .env.example .env
+# Set JWT_SECRET (≥32 chars), FERNET_KEY, optional ANTHROPIC_API_KEY
+uv run python -c "from social_agent.crypto import generate_key; print(generate_key().decode())"
+docker compose up --build
+docker compose exec api uv run alembic upgrade head
+# API: http://127.0.0.1:8000
+```
+
+Compose overrides `DATABASE_URL` / `REDIS_URL` to the `db` / `redis` services. Siren resource stores remain in-memory until SQL adapters land; Redis backs JWT refresh + agent-run payloads.
+
+Host-side (without the `api` container):
+
+```bash
+docker compose up db redis -d
+set -a && source .env && set +a
+uv run alembic upgrade head
+uv run uvicorn social_agent.api.main:create_app_from_env --factory --reload
+```
 
 ## Local quality gates (same as PR CI)
 
@@ -333,7 +358,7 @@ app = create_app(
 `llm_connections.credentials_encrypted` and social-account credentials must store Fernet ciphertext, never plaintext API keys.
 
 ```bash
-# Generate a key once; keep it only in the environment (compose lands in a later task).
+# Generate a key once; keep it only in `.env` / the environment (see `.env.example`).
 uv run python -c "from social_agent.crypto import generate_key; print(generate_key().decode())"
 export FERNET_KEY=...   # value from generate_key
 ```
