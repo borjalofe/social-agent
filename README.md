@@ -168,6 +168,23 @@ entity = build_voice(user_id, body="tono directo")
 
 Missing or invalid Bearer → `401`. Unauthorized `update-voice` → `403`.
 
+## Siren context
+
+Authenticated context docs are a **collection** (many per user):
+
+- `GET /context` — Siren collection + `add-context` (`POST /context`)
+- `POST /context` — JSON `{"title": "…", "body": "…"}` → item entity
+- `GET /context/{id}` — item with `update-context`
+- `PUT /context/{id}` — update title/body
+
+Default store is in-memory (`InMemoryContextStore`); inject a durable adapter for production. Cross-user ids return `404`.
+
+```python
+from social_agent.siren import InMemoryContextStore, build_context_collection
+
+app = create_app(authn=authn, context_store=InMemoryContextStore())
+```
+
 ## Sealing LLM secrets (Fernet)
 
 `llm_connections.credentials_encrypted` must store Fernet ciphertext, never plaintext API keys.
