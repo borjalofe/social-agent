@@ -43,6 +43,7 @@ from social_agent.siren.publications import (
     PublicationStore,
     build_publication_item,
     build_publications_collection,
+    is_publication_locked,
 )
 from social_agent.siren.social_accounts import (
     InMemorySocialAccountStore,
@@ -524,6 +525,11 @@ def create_app(
     ) -> JSONResponse:
         enforce_action(request, claims, "update-publication")
         store: PublicationStore = request.app.state.publication_store
+        existing = store.get(claims.user_id, pub_id)
+        if existing is None:
+            raise HTTPException(status_code=404, detail="not_found")
+        if is_publication_locked(existing.status):
+            raise HTTPException(status_code=409, detail="publication_locked")
         record = store.update(
             claims.user_id,
             pub_id,
