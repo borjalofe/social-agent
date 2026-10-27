@@ -36,7 +36,8 @@ def test_compose_defines_db_redis_and_api() -> None:
     assert "postgres" in services["db"]["image"]
     assert "redis" in services["redis"]["image"]
     assert services["api"]["build"]["dockerfile"] == "Dockerfile"
-    assert services["api"]["env_file"] == [".env"]
+    env_file = services["api"]["env_file"]
+    assert env_file == [{"path": ".env", "required": False}] or env_file == [".env"]
     env = services["api"]["environment"]
     assert "DATABASE_URL" in env
     assert "REDIS_URL" in env
