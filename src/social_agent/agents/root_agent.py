@@ -40,18 +40,29 @@ def _resolve_model(model: str | Any | None) -> str | Any:
     return os.environ.get("SOCIAL_AGENT_ROOT_MODEL", DEFAULT_ROOT_MODEL)
 
 
+def _default_sub_agents(*, model: str | Any | None = None) -> list[BaseAgent]:
+    # Late import avoids a cycle with copy_linkedin (which does not import root).
+    from social_agent.agents.copy_linkedin import build_copy_linkedin_agent
+
+    return [build_copy_linkedin_agent(model=model)]
+
+
 def build_root_agent(
     *,
     model: str | Any | None = None,
     sub_agents: Sequence[BaseAgent] | None = None,
 ) -> Agent:
-    """Build the ADK root router. Inject specialists later (e.g. copy_linkedin)."""
+    """Build the ADK root router.
+
+    Default specialist: `copy_linkedin`. Pass `sub_agents=[]` to clear.
+    """
+    resolved = list(sub_agents) if sub_agents is not None else _default_sub_agents(model=model)
     return Agent(
         name=ROOT_AGENT_NAME,
         description=ROOT_AGENT_DESCRIPTION,
         instruction=ROOT_AGENT_INSTRUCTION,
         model=_resolve_model(model),
-        sub_agents=list(sub_agents or ()),
+        sub_agents=resolved,
         generate_content_config=types.GenerateContentConfig(
             temperature=0.1,
             max_output_tokens=512,
@@ -59,5 +70,5 @@ def build_root_agent(
     )
 
 
-# Default export for ADK discovery; specialists register via build_root_agent(...).
+# Default export for ADK discovery (includes copy_linkedin).
 root_agent = build_root_agent()
