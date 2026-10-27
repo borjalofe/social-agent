@@ -352,3 +352,5 @@ Dry-run locally (no GitHub calls):
 ```bash
 uv run python -m social_agent.audit --dry-run
 ```
+
+Post-release manual audits (M2 after each `0.y.0`) live under `docs/audits/` — e.g. [0.1.0](docs/audits/0.1.0.md) (clean; no PATCH).
