@@ -258,22 +258,14 @@ app = create_app(authn=authn, publication_store=InMemoryPublicationStore())
 
 ## ADK root_agent (router)
 
-Google ADK swarm entry: `root_agent` only routes to specialist sub-agents (it does not write channel copy). Specialists (`copy_linkedin`, …) land in later tasks. Override the model with `SOCIAL_AGENT_ROOT_MODEL` or `build_root_agent(model=…)`.
+Google ADK swarm entry: `root_agent` only routes to specialist sub-agents (it does not write channel copy). Default specialist: `copy_linkedin`. Override the model with `SOCIAL_AGENT_ROOT_MODEL` or `build_root_agent(model=…)`. Pass `sub_agents=[]` to clear defaults.
 
 ```python
-from google.adk.agents import Agent
 from social_agent.agents import build_root_agent, root_agent
 
 assert root_agent.name == "root_agent"
-assert root_agent.sub_agents == []  # specialists register later
-
-specialist = Agent(
-    name="copy_linkedin",
-    description="…",
-    instruction="…",
-    model="gemini-2.0-flash",
-)
-router = build_root_agent(sub_agents=[specialist])
+assert [a.name for a in root_agent.sub_agents] == ["copy_linkedin"]
+router = build_root_agent(sub_agents=[])  # router only
 ```
 
 ## ADK InstructionProvider
@@ -295,6 +287,20 @@ provider = InstructionProvider(
 )
 text = provider.pack(user_id, channel="linkedin", base_instruction="Write a post.")
 # Agent(..., instruction=provider.for_agent("Write a post.", channel="linkedin"))
+```
+
+## ADK copy_linkedin
+
+LinkedIn draft specialist: writes post copy only (no tools, no publish/approve). Wire `InstructionProvider` for per-user voice/context/`linkedin` canal rules. Model: `SOCIAL_AGENT_COPY_LINKEDIN_MODEL` or `SOCIAL_AGENT_ROOT_MODEL`.
+
+```python
+from social_agent.agents import InstructionProvider, build_copy_linkedin_agent, copy_linkedin_agent
+
+assert copy_linkedin_agent.name == "copy_linkedin"
+assert copy_linkedin_agent.tools == []
+
+agent = build_copy_linkedin_agent(instruction_provider=provider)
+# Agent instruction packs channel="linkedin" from the provider
 ```
 
 ## Siren agent-run
