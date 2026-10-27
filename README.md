@@ -241,6 +241,21 @@ app = create_app(
 )
 ```
 
+## Siren publications
+
+Approved finals only (`status`: `approved` | `scheduled` | `published`). Collection + entity for the calendar; edit locks for scheduled/published land in a later task.
+
+- `GET /publications` — collection + `add-publication` (list entities omit `body`)
+- `POST /publications` — `{"channel", "title?", "body", "status?", "scheduled_at?", "published_at?"}`
+- `GET /publications/{id}` — item with `update-publication`
+- `PUT /publications/{id}` — replace fields
+
+```python
+from social_agent.siren import InMemoryPublicationStore
+
+app = create_app(authn=authn, publication_store=InMemoryPublicationStore())
+```
+
 ## Sealing LLM secrets (Fernet)
 
 `llm_connections.credentials_encrypted` and social-account credentials must store Fernet ciphertext, never plaintext API keys.
