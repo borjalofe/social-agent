@@ -23,7 +23,7 @@ class Publication(Base):
     channel: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
     title: Mapped[str | None] = mapped_column(String(512), nullable=True)
     body: Mapped[str] = mapped_column(Text, nullable=False)
-    # approved | scheduled | published — lock rules land in a later task.
+    # approved | scheduled | published — Siren locks edits for scheduled/published.
     status: Mapped[str] = mapped_column(
         String(32),
         nullable=False,

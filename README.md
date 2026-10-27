@@ -243,12 +243,12 @@ app = create_app(
 
 ## Siren publications
 
-Approved finals only (`status`: `approved` | `scheduled` | `published`). Collection + entity for the calendar; edit locks for scheduled/published land in a later task.
+Approved finals only (`status`: `approved` | `scheduled` | `published`). Collection + entity for the calendar. Once `scheduled` or `published`, edits are locked (`update-publication` omitted; `PUT` → `409 publication_locked`).
 
 - `GET /publications` — collection + `add-publication` (list entities omit `body`)
 - `POST /publications` — `{"channel", "title?", "body", "status?", "scheduled_at?", "published_at?"}`
-- `GET /publications/{id}` — item with `update-publication`
-- `PUT /publications/{id}` — replace fields
+- `GET /publications/{id}` — item; `update-publication` only while `approved`
+- `PUT /publications/{id}` — replace fields (blocked when locked)
 
 ```python
 from social_agent.siren import InMemoryPublicationStore

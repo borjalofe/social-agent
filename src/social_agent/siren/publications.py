@@ -17,6 +17,13 @@ EXPECTED_PUBLICATIONS_COLLECTION_RELS: frozenset[tuple[str, ...]] = frozenset(
 )
 
 ALLOWED_PUBLICATION_STATUSES = frozenset({"approved", "scheduled", "published"})
+LOCKED_PUBLICATION_STATUSES = frozenset({"scheduled", "published"})
+
+
+def is_publication_locked(status: str) -> bool:
+    """True when the publication may not be edited (calendar / already out)."""
+    return status in LOCKED_PUBLICATION_STATUSES
+
 
 ADD_PUBLICATION_ACTION: dict[str, Any] = {
     "name": "add-publication",
@@ -181,9 +188,11 @@ def _properties(record: PublicationRecord) -> dict[str, Any]:
 
 
 def build_publication_item(record: PublicationRecord) -> dict[str, Any]:
-    """Build a Siren publication item with update-publication action."""
+    """Build a Siren publication item; omit update when scheduled/published."""
     href = _item_href(record.id)
-    action = {**UPDATE_PUBLICATION_ACTION, "href": href}
+    actions: list[dict[str, Any]] = []
+    if not is_publication_locked(record.status):
+        actions.append({**UPDATE_PUBLICATION_ACTION, "href": href})
     return {
         "class": ["publication", "item"],
         "properties": _properties(record),
@@ -193,7 +202,7 @@ def build_publication_item(record: PublicationRecord) -> dict[str, Any]:
             {"rel": ["collection"], "href": "/publications"},
             {"rel": ["home"], "href": "/"},
         ],
-        "actions": [action],
+        "actions": actions,
     }
 
 

@@ -76,7 +76,7 @@ def test_build_publications_collection_offers_add() -> None:
     assert rels == EXPECTED_PUBLICATIONS_COLLECTION_RELS
 
 
-def test_build_publication_item_offers_update(
+def test_build_publication_item_offers_update_when_approved(
     publication_store: InMemoryPublicationStore,
 ) -> None:
     user_id = uuid.uuid4()
@@ -86,13 +86,13 @@ def test_build_publication_item_offers_update(
         channel="x",
         title=None,
         body="hola",
-        status="scheduled",
+        status="approved",
         scheduled_at=when,
         published_at=None,
     )
     entity = build_publication_item(record)
     assert entity["class"] == ["publication", "item"]
-    assert entity["properties"]["status"] == "scheduled"
+    assert entity["properties"]["status"] == "approved"
     assert entity["properties"]["scheduled_at"] == when.isoformat()
     assert entity["actions"][0]["name"] == "update-publication"
     assert entity["actions"][0]["href"] == f"/publications/{record.id}"
