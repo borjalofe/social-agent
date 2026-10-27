@@ -2,6 +2,8 @@
 
 Multi-user editorial agents behind Siren. Host: [github.com/borjalofe/social-agent](https://github.com/borjalofe/social-agent).
 
+**Version:** [0.1.0](CHANGELOG.md) (first M2 slice after ADK `copy_linkedin`).
+
 ## Requirements
 
 - Python ≥ 3.12
