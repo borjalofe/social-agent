@@ -22,6 +22,13 @@ from social_agent.siren.llm_connections import (
     build_llm_connection_item,
     build_llm_connections_collection,
 )
+from social_agent.siren.publications import (
+    EXPECTED_PUBLICATIONS_COLLECTION_RELS,
+    InMemoryPublicationStore,
+    PublicationRecord,
+    build_publication_item,
+    build_publications_collection,
+)
 from social_agent.siren.social_accounts import (
     EXPECTED_SOCIAL_ACCOUNTS_COLLECTION_RELS,
     InMemorySocialAccountStore,
@@ -42,6 +49,7 @@ __all__ = [
     "EXPECTED_CONTEXT_COLLECTION_RELS",
     "EXPECTED_HOME_RELS",
     "EXPECTED_LLM_CONNECTIONS_COLLECTION_RELS",
+    "EXPECTED_PUBLICATIONS_COLLECTION_RELS",
     "EXPECTED_SOCIAL_ACCOUNTS_COLLECTION_RELS",
     "EXPECTED_USER_RELS",
     "EXPECTED_VOICE_RELS",
@@ -50,9 +58,11 @@ __all__ = [
     "InMemoryCanalRuleStore",
     "InMemoryContextStore",
     "InMemoryLlmConnectionStore",
+    "InMemoryPublicationStore",
     "InMemorySocialAccountStore",
     "InMemoryVoiceStore",
     "LlmConnectionRecord",
+    "PublicationRecord",
     "SIREN_MEDIA_TYPE",
     "SocialAccountRecord",
     "VoiceRecord",
@@ -63,6 +73,8 @@ __all__ = [
     "build_home",
     "build_llm_connection_item",
     "build_llm_connections_collection",
+    "build_publication_item",
+    "build_publications_collection",
     "build_social_account_item",
     "build_social_accounts_collection",
     "build_user",
