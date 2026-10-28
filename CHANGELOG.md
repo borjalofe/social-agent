@@ -19,6 +19,11 @@ Second M2 channel slice: ADK `copy_x`, approve-draft → calendar, and local Com
 
 - `copy_x` is draft-only (`tools=[]`); approve remains owner-scoped via JWT + authz
 
+### Announcement
+
+- Blog (canonical content repo): [EN](https://github.com/borjalofe/blog/blob/main/content/posts/en/social-agent-0-2-0.md) · [ES](https://github.com/borjalofe/blog/blob/main/content/posts/es/social-agent-0-2-0.md)
+- Network drafts live as vault `Publication` notes (LinkedIn / X / Medium); public URLs land when those posts ship
+
 [0.2.0]: https://github.com/borjalofe/social-agent/releases/tag/0.2.0
 
 ## [0.1.0] — 2026-10-27
