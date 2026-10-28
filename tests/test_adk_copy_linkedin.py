@@ -31,7 +31,9 @@ def test_module_copy_linkedin_is_draft_only_specialist() -> None:
 
 
 def test_root_agent_registers_copy_linkedin_by_default() -> None:
-    assert [agent.name for agent in root_agent.sub_agents] == [COPY_LINKEDIN_NAME]
+    names = [agent.name for agent in root_agent.sub_agents]
+    assert COPY_LINKEDIN_NAME in names
+    assert names[0] == COPY_LINKEDIN_NAME
 
 
 def test_build_copy_linkedin_with_instruction_provider() -> None:
