@@ -14,12 +14,15 @@ from social_agent.agents import (
 from social_agent.agents.root_agent import ROOT_AGENT_DESCRIPTION, ROOT_AGENT_INSTRUCTION
 
 
-def test_module_root_agent_is_router_with_copy_linkedin() -> None:
+def test_module_root_agent_is_router_with_default_specialists() -> None:
     assert root_agent.name == ROOT_AGENT_NAME
     assert root_agent.description == ROOT_AGENT_DESCRIPTION
     assert root_agent.instruction == ROOT_AGENT_INSTRUCTION
     assert root_agent.model == DEFAULT_ROOT_MODEL
-    assert [agent.name for agent in root_agent.sub_agents] == ["copy_linkedin"]
+    assert [agent.name for agent in root_agent.sub_agents] == [
+        "copy_linkedin",
+        "copy_x",
+    ]
     assert "route" in ROOT_AGENT_INSTRUCTION.lower() or "Routes" in ROOT_AGENT_DESCRIPTION
     assert "do not write" in ROOT_AGENT_INSTRUCTION.lower()
 
