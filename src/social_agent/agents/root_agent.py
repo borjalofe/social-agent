@@ -29,7 +29,8 @@ Responsibilities:
 
 Rules:
 - Least privilege: only route; never invent credentials, publishes, or approvals.
-- Prefer the specialist whose name matches the channel or task (e.g. copy_linkedin).
+- Prefer the specialist whose name matches the channel or task
+  (e.g. copy_linkedin, copy_x).
 - Keep replies short when you cannot transfer.
 """
 
@@ -41,10 +42,14 @@ def _resolve_model(model: str | Any | None) -> str | Any:
 
 
 def _default_sub_agents(*, model: str | Any | None = None) -> list[BaseAgent]:
-    # Late import avoids a cycle with copy_linkedin (which does not import root).
+    # Late imports avoid cycles with specialists (they do not import root).
     from social_agent.agents.copy_linkedin import build_copy_linkedin_agent
+    from social_agent.agents.copy_x import build_copy_x_agent
 
-    return [build_copy_linkedin_agent(model=model)]
+    return [
+        build_copy_linkedin_agent(model=model),
+        build_copy_x_agent(model=model),
+    ]
 
 
 def build_root_agent(
@@ -54,7 +59,7 @@ def build_root_agent(
 ) -> Agent:
     """Build the ADK root router.
 
-    Default specialist: `copy_linkedin`. Pass `sub_agents=[]` to clear.
+    Default specialists: `copy_linkedin`, `copy_x`. Pass `sub_agents=[]` to clear.
     """
     resolved = list(sub_agents) if sub_agents is not None else _default_sub_agents(model=model)
     return Agent(
@@ -70,5 +75,5 @@ def build_root_agent(
     )
 
 
-# Default export for ADK discovery (includes copy_linkedin).
+# Default export for ADK discovery (includes copy_linkedin + copy_x).
 root_agent = build_root_agent()
