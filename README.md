@@ -287,13 +287,17 @@ app = create_app(authn=authn, publication_store=InMemoryPublicationStore())
 
 ## ADK root_agent (router)
 
-Google ADK swarm entry: `root_agent` only routes to specialist sub-agents (it does not write channel copy). Default specialists: `copy_linkedin`, `copy_x`. Override the model with `SOCIAL_AGENT_ROOT_MODEL` or `build_root_agent(model=…)`. Pass `sub_agents=[]` to clear defaults.
+Google ADK swarm entry: `root_agent` only routes to specialist sub-agents (it does not write channel copy). Default specialists: `copy_linkedin`, `copy_x`, `copy_blog`. Override the model with `SOCIAL_AGENT_ROOT_MODEL` or `build_root_agent(model=…)`. Pass `sub_agents=[]` to clear defaults.
 
 ```python
 from social_agent.agents import build_root_agent, root_agent
 
 assert root_agent.name == "root_agent"
-assert [a.name for a in root_agent.sub_agents] == ["copy_linkedin", "copy_x"]
+assert [a.name for a in root_agent.sub_agents] == [
+    "copy_linkedin",
+    "copy_x",
+    "copy_blog",
+]
 router = build_root_agent(sub_agents=[])  # router only
 ```
 
@@ -342,6 +346,18 @@ from social_agent.agents import build_copy_x_agent, copy_x_agent
 assert copy_x_agent.name == "copy_x"
 assert copy_x_agent.tools == []
 agent = build_copy_x_agent(instruction_provider=provider)
+```
+
+## ADK copy_blog
+
+Long-form blog draft specialist: Markdown title/lede/body only (no tools, no publish/approve). Uses `InstructionProvider` with channel=`blog`. Model: `SOCIAL_AGENT_COPY_BLOG_MODEL` or `SOCIAL_AGENT_ROOT_MODEL`.
+
+```python
+from social_agent.agents import build_copy_blog_agent, copy_blog_agent
+
+assert copy_blog_agent.name == "copy_blog"
+assert copy_blog_agent.tools == []
+agent = build_copy_blog_agent(instruction_provider=provider)
 ```
 
 ## Siren agent-run
