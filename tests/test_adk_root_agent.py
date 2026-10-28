@@ -22,6 +22,7 @@ def test_module_root_agent_is_router_with_default_specialists() -> None:
     assert [agent.name for agent in root_agent.sub_agents] == [
         "copy_linkedin",
         "copy_x",
+        "copy_blog",
     ]
     assert "route" in ROOT_AGENT_INSTRUCTION.lower() or "Routes" in ROOT_AGENT_DESCRIPTION
     assert "do not write" in ROOT_AGENT_INSTRUCTION.lower()
