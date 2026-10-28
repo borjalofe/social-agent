@@ -5,6 +5,22 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] — 2026-10-28
+
+Second M2 channel slice: ADK `copy_x`, approve-draft → calendar, and local Compose runtime.
+
+### Added
+
+- ADK `copy_x` draft specialist (InstructionProvider channel `x`); registered under `root_agent` with `copy_linkedin`
+- `POST /agent-run/{id}/approve` — persist `payload.draft` as an `approved` publication; mark run `completed`
+- Local runtime: `compose.yaml` (Postgres 16 + Redis 7 + API), `Dockerfile`, `.env.example` (JWT / Fernet / Claude), `create_app_from_env`
+
+### Security
+
+- `copy_x` is draft-only (`tools=[]`); approve remains owner-scoped via JWT + authz
+
+[0.2.0]: https://github.com/borjalofe/social-agent/releases/tag/0.2.0
+
 ## [0.1.0] — 2026-10-27
 
 First M2 MVP slice after ADK `copy_linkedin`: Siren API + auth + session stores + LinkedIn draft specialist.
