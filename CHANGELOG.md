@@ -5,6 +5,21 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] — 2026-10-29
+
+Fourth M2 channel slice: ADK `copy_medium` under `root_agent` with LinkedIn, X, and blog.
+
+### Added
+
+- ADK `copy_medium` draft specialist (InstructionProvider channel `medium`); title/subtitle + narrative Markdown; registered under `root_agent` with `copy_linkedin`, `copy_x`, and `copy_blog`
+- `.env.example` `SOCIAL_AGENT_COPY_MEDIUM_MODEL`
+
+### Security
+
+- `copy_medium` is draft-only (`tools=[]`); no publish/approve tools
+
+[0.4.0]: https://github.com/borjalofe/social-agent/releases/tag/0.4.0
+
 ## [0.3.0] — 2026-10-28
 
 Third M2 channel slice: ADK `copy_blog` under `root_agent` with LinkedIn and X.
