@@ -18,6 +18,11 @@ Fourth M2 channel slice: ADK `copy_medium` under `root_agent` with LinkedIn, X, 
 
 - `copy_medium` is draft-only (`tools=[]`); no publish/approve tools
 
+### Announcement
+
+- Blog (canonical content repo): [EN](https://github.com/borjalofe/blog/blob/main/content/posts/en/social-agent-0-4-0.md) · [ES](https://github.com/borjalofe/blog/blob/main/content/posts/es/social-agent-0-4-0.md)
+- Network drafts live as vault `Publication` notes (LinkedIn / X / Medium); public URLs land when those posts ship
+
 [0.4.0]: https://github.com/borjalofe/social-agent/releases/tag/0.4.0
 
 ## [0.3.0] — 2026-10-28

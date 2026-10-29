@@ -4,7 +4,7 @@ Multi-user editorial agents behind Siren. Host: [github.com/borjalofe/social-age
 
 **Version:** [0.4.0](CHANGELOG.md) (M2 after ADK `copy_medium`; follows 0.3.0 blog slice).
 
-**Announcement:** [EN](https://github.com/borjalofe/blog/blob/main/content/posts/en/social-agent-0-3-0.md) · [ES](https://github.com/borjalofe/blog/blob/main/content/posts/es/social-agent-0-3-0.md) (network drafts: vault Publications, linked from the post). Prior: [0.2.0 EN](https://github.com/borjalofe/blog/blob/main/content/posts/en/social-agent-0-2-0.md) · [ES](https://github.com/borjalofe/blog/blob/main/content/posts/es/social-agent-0-2-0.md).
+**Announcement:** [EN](https://github.com/borjalofe/blog/blob/main/content/posts/en/social-agent-0-4-0.md) · [ES](https://github.com/borjalofe/blog/blob/main/content/posts/es/social-agent-0-4-0.md) (network drafts: vault Publications, linked from the post). Prior: [0.3.0 EN](https://github.com/borjalofe/blog/blob/main/content/posts/en/social-agent-0-3-0.md) · [ES](https://github.com/borjalofe/blog/blob/main/content/posts/es/social-agent-0-3-0.md).
 
 ## Requirements
 
