@@ -23,6 +23,10 @@ Fourth M2 channel slice: ADK `copy_medium` under `root_agent` with LinkedIn, X, 
 - Blog (canonical content repo): [EN](https://github.com/borjalofe/blog/blob/main/content/posts/en/social-agent-0-4-0.md) · [ES](https://github.com/borjalofe/blog/blob/main/content/posts/es/social-agent-0-4-0.md)
 - Network drafts live as vault `Publication` notes (LinkedIn / X / Medium); public URLs land when those posts ship
 
+### Audit
+
+- Post-release audit 2026-10-29: SCA/SAST clean; no `[FIX]` / PATCH — [docs/audits/0.4.0.md](docs/audits/0.4.0.md)
+
 [0.4.0]: https://github.com/borjalofe/social-agent/releases/tag/0.4.0
 
 ## [0.3.0] — 2026-10-28
