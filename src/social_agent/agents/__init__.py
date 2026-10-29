@@ -5,6 +5,11 @@ from social_agent.agents.copy_blog import (
     build_copy_blog_agent,
     copy_blog_agent,
 )
+from social_agent.agents.copy_instagram import (
+    COPY_INSTAGRAM_NAME,
+    build_copy_instagram_agent,
+    copy_instagram_agent,
+)
 from social_agent.agents.copy_linkedin import (
     COPY_LINKEDIN_NAME,
     build_copy_linkedin_agent,
@@ -31,6 +36,7 @@ from social_agent.agents.root_agent import (
 
 __all__ = [
     "COPY_BLOG_NAME",
+    "COPY_INSTAGRAM_NAME",
     "COPY_LINKEDIN_NAME",
     "COPY_MEDIUM_NAME",
     "COPY_X_NAME",
@@ -39,12 +45,14 @@ __all__ = [
     "InstructionProvider",
     "ROOT_AGENT_NAME",
     "build_copy_blog_agent",
+    "build_copy_instagram_agent",
     "build_copy_linkedin_agent",
     "build_copy_medium_agent",
     "build_copy_x_agent",
     "build_copy_youtube_agent",
     "build_root_agent",
     "copy_blog_agent",
+    "copy_instagram_agent",
     "copy_linkedin_agent",
     "copy_medium_agent",
     "copy_x_agent",
