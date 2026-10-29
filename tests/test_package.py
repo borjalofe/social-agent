@@ -6,4 +6,4 @@ import social_agent
 
 
 def test_package_exposes_version() -> None:
-    assert social_agent.__version__ == "0.5.0"
+    assert social_agent.__version__ == "0.6.0"

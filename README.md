@@ -2,7 +2,7 @@
 
 Multi-user editorial agents behind Siren. Host: [github.com/borjalofe/social-agent](https://github.com/borjalofe/social-agent).
 
-**Version:** [0.5.0](CHANGELOG.md) (M2 after ADK `copy_youtube`; follows 0.4.0 Medium slice).
+**Version:** [0.6.0](CHANGELOG.md) (M2 after ADK `copy_instagram`; follows 0.5.0 YouTube slice).
 
 **Announcement:** [EN](https://github.com/borjalofe/blog/blob/main/content/posts/en/social-agent-0-5-0.md) · [ES](https://github.com/borjalofe/blog/blob/main/content/posts/es/social-agent-0-5-0.md) (network drafts: vault Publications, linked from the post). Prior: [0.4.0 EN](https://github.com/borjalofe/blog/blob/main/content/posts/en/social-agent-0-4-0.md) · [ES](https://github.com/borjalofe/blog/blob/main/content/posts/es/social-agent-0-4-0.md).
 
