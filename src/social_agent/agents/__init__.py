@@ -33,6 +33,11 @@ from social_agent.agents.root_agent import (
     build_root_agent,
     root_agent,
 )
+from social_agent.agents.update_voice import (
+    UPDATE_VOICE_NAME,
+    build_update_voice_agent,
+    update_voice_agent,
+)
 
 __all__ = [
     "COPY_BLOG_NAME",
@@ -44,6 +49,7 @@ __all__ = [
     "DEFAULT_ROOT_MODEL",
     "InstructionProvider",
     "ROOT_AGENT_NAME",
+    "UPDATE_VOICE_NAME",
     "build_copy_blog_agent",
     "build_copy_instagram_agent",
     "build_copy_linkedin_agent",
@@ -51,6 +57,7 @@ __all__ = [
     "build_copy_x_agent",
     "build_copy_youtube_agent",
     "build_root_agent",
+    "build_update_voice_agent",
     "copy_blog_agent",
     "copy_instagram_agent",
     "copy_linkedin_agent",
@@ -58,4 +65,5 @@ __all__ = [
     "copy_x_agent",
     "copy_youtube_agent",
     "root_agent",
+    "update_voice_agent",
 ]

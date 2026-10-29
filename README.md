@@ -287,7 +287,7 @@ app = create_app(authn=authn, publication_store=InMemoryPublicationStore())
 
 ## ADK root_agent (router)
 
-Google ADK swarm entry: `root_agent` only routes to specialist sub-agents (it does not write channel copy). Default specialists: `copy_linkedin`, `copy_x`, `copy_blog`, `copy_medium`, `copy_youtube`, `copy_instagram`. Override the model with `SOCIAL_AGENT_ROOT_MODEL` or `build_root_agent(model=…)`. Pass `sub_agents=[]` to clear defaults.
+Google ADK swarm entry: `root_agent` only routes to specialist sub-agents (it does not write channel copy). Default specialists: `copy_linkedin`, `copy_x`, `copy_blog`, `copy_medium`, `copy_youtube`, `copy_instagram`, `update_voice`. Override the model with `SOCIAL_AGENT_ROOT_MODEL` or `build_root_agent(model=…)`. Pass `sub_agents=[]` to clear defaults.
 
 ```python
 from social_agent.agents import build_root_agent, root_agent
@@ -300,6 +300,7 @@ assert [a.name for a in root_agent.sub_agents] == [
     "copy_medium",
     "copy_youtube",
     "copy_instagram",
+    "update_voice",
 ]
 router = build_root_agent(sub_agents=[])  # router only
 ```
@@ -397,6 +398,22 @@ from social_agent.agents import build_copy_instagram_agent, copy_instagram_agent
 assert copy_instagram_agent.name == "copy_instagram"
 assert copy_instagram_agent.tools == []
 agent = build_copy_instagram_agent(instruction_provider=provider)
+```
+
+## ADK update_voice
+
+Editorial voice draft specialist: proposes an updated voice document from the current voice + **publications corpus** (no tools, no publish/approve, no network copy). Wire `InstructionProvider` + `PublicationStore`. The human applies the draft via Siren `PUT /voice`. Model: `SOCIAL_AGENT_UPDATE_VOICE_MODEL` or `SOCIAL_AGENT_ROOT_MODEL`.
+
+```python
+from social_agent.agents import build_update_voice_agent, update_voice_agent
+from social_agent.siren import InMemoryPublicationStore
+
+assert update_voice_agent.name == "update_voice"
+assert update_voice_agent.tools == []
+agent = build_update_voice_agent(
+    instruction_provider=provider,
+    publication_store=InMemoryPublicationStore(),
+)
 ```
 
 ## Siren agent-run
