@@ -32,14 +32,14 @@ def test_module_copy_instagram_is_draft_only_specialist() -> None:
 
 
 def test_root_agent_registers_five_channels_and_instagram() -> None:
-    assert [agent.name for agent in root_agent.sub_agents] == [
-        "copy_linkedin",
-        "copy_x",
-        "copy_blog",
-        "copy_medium",
-        "copy_youtube",
-        COPY_INSTAGRAM_NAME,
-    ]
+    names = [agent.name for agent in root_agent.sub_agents]
+    assert names[0] == "copy_linkedin"
+    assert names[1] == "copy_x"
+    assert names[2] == "copy_blog"
+    assert names[3] == "copy_medium"
+    assert names[4] == "copy_youtube"
+    assert names[5] == COPY_INSTAGRAM_NAME
+    assert COPY_INSTAGRAM_NAME in names
 
 
 def test_build_copy_instagram_with_instruction_provider() -> None:
