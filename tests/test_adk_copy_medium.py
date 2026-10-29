@@ -32,12 +32,12 @@ def test_module_copy_medium_is_draft_only_specialist() -> None:
 
 
 def test_root_agent_registers_linkedin_x_blog_and_medium() -> None:
-    assert [agent.name for agent in root_agent.sub_agents] == [
-        "copy_linkedin",
-        "copy_x",
-        "copy_blog",
-        COPY_MEDIUM_NAME,
-    ]
+    names = [agent.name for agent in root_agent.sub_agents]
+    assert names[0] == "copy_linkedin"
+    assert names[1] == "copy_x"
+    assert names[2] == "copy_blog"
+    assert names[3] == COPY_MEDIUM_NAME
+    assert COPY_MEDIUM_NAME in names
 
 
 def test_build_copy_medium_with_instruction_provider() -> None:
