@@ -287,7 +287,7 @@ app = create_app(authn=authn, publication_store=InMemoryPublicationStore())
 
 ## ADK root_agent (router)
 
-Google ADK swarm entry: `root_agent` only routes to specialist sub-agents (it does not write channel copy). Default specialists: `copy_linkedin`, `copy_x`, `copy_blog`, `copy_medium`. Override the model with `SOCIAL_AGENT_ROOT_MODEL` or `build_root_agent(model=…)`. Pass `sub_agents=[]` to clear defaults.
+Google ADK swarm entry: `root_agent` only routes to specialist sub-agents (it does not write channel copy). Default specialists: `copy_linkedin`, `copy_x`, `copy_blog`, `copy_medium`, `copy_youtube`. Override the model with `SOCIAL_AGENT_ROOT_MODEL` or `build_root_agent(model=…)`. Pass `sub_agents=[]` to clear defaults.
 
 ```python
 from social_agent.agents import build_root_agent, root_agent
@@ -298,6 +298,7 @@ assert [a.name for a in root_agent.sub_agents] == [
     "copy_x",
     "copy_blog",
     "copy_medium",
+    "copy_youtube",
 ]
 router = build_root_agent(sub_agents=[])  # router only
 ```
@@ -371,6 +372,18 @@ from social_agent.agents import build_copy_medium_agent, copy_medium_agent
 assert copy_medium_agent.name == "copy_medium"
 assert copy_medium_agent.tools == []
 agent = build_copy_medium_agent(instruction_provider=provider)
+```
+
+## ADK copy_youtube
+
+YouTube draft specialist: title/description + spoken script (optional chapters) only (no tools, no publish/approve). Uses `InstructionProvider` with channel=`youtube`. Model: `SOCIAL_AGENT_COPY_YOUTUBE_MODEL` or `SOCIAL_AGENT_ROOT_MODEL`.
+
+```python
+from social_agent.agents import build_copy_youtube_agent, copy_youtube_agent
+
+assert copy_youtube_agent.name == "copy_youtube"
+assert copy_youtube_agent.tools == []
+agent = build_copy_youtube_agent(instruction_provider=provider)
 ```
 
 ## Siren agent-run
