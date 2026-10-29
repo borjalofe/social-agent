@@ -14,9 +14,7 @@ COPY_MEDIUM_NAME = "copy_medium"
 COPY_MEDIUM_CHANNEL = "medium"
 DEFAULT_COPY_MEDIUM_MODEL = "gemini-2.0-flash"
 
-COPY_MEDIUM_DESCRIPTION = (
-    "Drafts Medium articles in the user's voice; does not publish or approve."
-)
+COPY_MEDIUM_DESCRIPTION = "Drafts Medium articles in the user's voice; does not publish or approve."
 
 COPY_MEDIUM_BASE_INSTRUCTION = """\
 You are the Social Agent Medium copy specialist (`copy_medium`).
