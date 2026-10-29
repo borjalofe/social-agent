@@ -25,6 +25,7 @@ def test_module_root_agent_is_router_with_default_specialists() -> None:
         "copy_blog",
         "copy_medium",
         "copy_youtube",
+        "copy_instagram",
     ]
     assert "route" in ROOT_AGENT_INSTRUCTION.lower() or "Routes" in ROOT_AGENT_DESCRIPTION
     assert "do not write" in ROOT_AGENT_INSTRUCTION.lower()

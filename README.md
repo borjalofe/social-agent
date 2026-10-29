@@ -287,7 +287,7 @@ app = create_app(authn=authn, publication_store=InMemoryPublicationStore())
 
 ## ADK root_agent (router)
 
-Google ADK swarm entry: `root_agent` only routes to specialist sub-agents (it does not write channel copy). Default specialists: `copy_linkedin`, `copy_x`, `copy_blog`, `copy_medium`, `copy_youtube`. Override the model with `SOCIAL_AGENT_ROOT_MODEL` or `build_root_agent(model=…)`. Pass `sub_agents=[]` to clear defaults.
+Google ADK swarm entry: `root_agent` only routes to specialist sub-agents (it does not write channel copy). Default specialists: `copy_linkedin`, `copy_x`, `copy_blog`, `copy_medium`, `copy_youtube`, `copy_instagram`. Override the model with `SOCIAL_AGENT_ROOT_MODEL` or `build_root_agent(model=…)`. Pass `sub_agents=[]` to clear defaults.
 
 ```python
 from social_agent.agents import build_root_agent, root_agent
@@ -299,6 +299,7 @@ assert [a.name for a in root_agent.sub_agents] == [
     "copy_blog",
     "copy_medium",
     "copy_youtube",
+    "copy_instagram",
 ]
 router = build_root_agent(sub_agents=[])  # router only
 ```
@@ -384,6 +385,18 @@ from social_agent.agents import build_copy_youtube_agent, copy_youtube_agent
 assert copy_youtube_agent.name == "copy_youtube"
 assert copy_youtube_agent.tools == []
 agent = build_copy_youtube_agent(instruction_provider=provider)
+```
+
+## ADK copy_instagram
+
+Instagram draft specialist: caption (+ optional reel/carousel notes) only (no tools, no publish/approve). Uses `InstructionProvider` with channel=`instagram`. Model: `SOCIAL_AGENT_COPY_INSTAGRAM_MODEL` or `SOCIAL_AGENT_ROOT_MODEL`.
+
+```python
+from social_agent.agents import build_copy_instagram_agent, copy_instagram_agent
+
+assert copy_instagram_agent.name == "copy_instagram"
+assert copy_instagram_agent.tools == []
+agent = build_copy_instagram_agent(instruction_provider=provider)
 ```
 
 ## Siren agent-run

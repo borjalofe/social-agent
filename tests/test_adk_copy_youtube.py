@@ -32,13 +32,13 @@ def test_module_copy_youtube_is_draft_only_specialist() -> None:
 
 
 def test_root_agent_registers_four_channels_and_youtube() -> None:
-    assert [agent.name for agent in root_agent.sub_agents] == [
-        "copy_linkedin",
-        "copy_x",
-        "copy_blog",
-        "copy_medium",
-        COPY_YOUTUBE_NAME,
-    ]
+    names = [agent.name for agent in root_agent.sub_agents]
+    assert names[0] == "copy_linkedin"
+    assert names[1] == "copy_x"
+    assert names[2] == "copy_blog"
+    assert names[3] == "copy_medium"
+    assert names[4] == COPY_YOUTUBE_NAME
+    assert COPY_YOUTUBE_NAME in names
 
 
 def test_build_copy_youtube_with_instruction_provider() -> None:
